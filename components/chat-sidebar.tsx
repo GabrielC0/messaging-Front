@@ -65,9 +65,10 @@ export function ChatSidebar({
   };
 
   return (
-    <div className="w-full md:w-80 bg-white border-r border-blue-100 flex flex-col h-full">
+    <div className="w-full md:w-96 bg-white border-r border-blue-100 flex flex-col h-full">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
+        {" "}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <Avatar
@@ -81,11 +82,11 @@ export function ChatSidebar({
             </Avatar>
             <span className="font-medium">{user?.username}</span>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-blue-700 cursor-pointer"
+              className="text-white hover:bg-blue-700 cursor-pointer !opacity-100 transition-colors"
               onClick={onShowContacts}
             >
               <Users className="h-5 w-5" />
@@ -93,37 +94,13 @@ export function ChatSidebar({
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-blue-700 cursor-pointer"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-blue-700 cursor-pointer"
-              onClick={onShowSettings}
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-blue-700 cursor-pointer"
-              onClick={onNewConversation}
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-blue-700 cursor-pointer"
+              className="text-white hover:bg-blue-700 cursor-pointer !opacity-100 transition-colors"
               onClick={logout}
             >
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
         </div>
-
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-300 h-4 w-4" />
@@ -175,10 +152,10 @@ export function ChatSidebar({
                   selectedConversation === conversation.id ? "bg-blue-100" : ""
                 }`}
               >
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={displayAvatar} />
-                    <AvatarFallback className="bg-blue-200">
+                    <AvatarImage src={displayAvatar} className="!opacity-100" />
+                    <AvatarFallback className="bg-blue-200 !opacity-100">
                       {avatarFallback}
                     </AvatarFallback>
                   </Avatar>

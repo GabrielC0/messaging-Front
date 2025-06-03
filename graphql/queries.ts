@@ -51,7 +51,7 @@ export const GET_USERS = gql`
 `;
 
 export const GET_USER = gql`
-  query GetUser($id: ID!) {
+  query GetUser($id: String!) {
     user(id: $id) {
       ...UserFragment
     }
@@ -60,7 +60,7 @@ export const GET_USER = gql`
 `;
 
 export const GET_USER_CONVERSATIONS = gql`
-  query GetUserConversations($userId: ID!) {
+  query GetUserConversations($userId: String!) {
     userConversations(userId: $userId) {
       ...ConversationFragment
     }
@@ -69,7 +69,7 @@ export const GET_USER_CONVERSATIONS = gql`
 `;
 
 export const GET_CONVERSATION_MESSAGES = gql`
-  query GetConversationMessages($conversationId: ID!) {
+  query GetConversationMessages($conversationId: String!) {
     conversationMessages(conversationId: $conversationId) {
       ...MessageFragment
     }
@@ -101,7 +101,7 @@ export const CREATE_CONVERSATION = gql`
 export const CREATE_MESSAGE = gql`
   mutation CreateMessage(
     $createMessageInput: CreateMessageInput!
-    $senderId: ID!
+    $senderId: String!
   ) {
     createMessage(
       createMessageInput: $createMessageInput
