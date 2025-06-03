@@ -13,7 +13,7 @@ import { setContext } from "@apollo/client/link/context";
 
 // Configuration du délai d'expiration des requêtes
 const TIMEOUT_MS = 5000; // 5 secondes
-const BACKEND_URL = "http://localhost:6379/graphql";
+const BACKEND_URL = "http://localhost:3002/graphql"; // Nouveau port pour NestJS
 
 // Variable globale pour suivre l'état de la connexion
 export let isBackendAvailable = true;
@@ -42,35 +42,50 @@ export const checkBackendAvailability = async (): Promise<boolean> => {
     if (isBackendAvailable) {
       consecutiveErrors = 0;
       console.log("Backend is available");
+      // Dispatch reconnected event if we were previously unavailable
+      if (!isBackendAvailable) {
+        window.dispatchEvent(new CustomEvent("backend-reconnected"));
+      }
     } else {
       console.warn("Backend responded with error:", response.status);
+      handleBackendError(new Error(`HTTP ${response.status}`));
     }
 
     return isBackendAvailable;
-  } catch (error) {
+  } catch (error: any) {
     console.warn("Backend unavailable:", error);
-    isBackendAvailable = false;
-
-    // Incrémenter le compteur d'erreurs consécutives
-    consecutiveErrors++;
-
-    // Si trop d'erreurs consécutives, afficher un message d'avertissement
-    if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-      console.error(
-        `Backend unreachable after ${MAX_CONSECUTIVE_ERRORS} attempts.`
-      );
-
-      // Déclencher un événement pour notifier l'interface utilisateur
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("backend-unreachable", {
-            detail: { consecutive: consecutiveErrors },
-          })
-        );
-      }
-    }
-
+    handleBackendError(error);
     return false;
+  }
+};
+
+const handleBackendError = (error: any) => {
+  consecutiveErrors++;
+  isBackendAvailable = false;
+
+  // Check if the error is EADDRINUSE
+  const isPortConflict =
+    error?.code === "EADDRINUSE" ||
+    error?.message?.includes("EADDRINUSE") ||
+    error?.message?.includes("address already in use");
+
+  // Dispatch custom event with error details
+  window.dispatchEvent(
+    new CustomEvent("backend-unreachable", {
+      detail: {
+        consecutive: consecutiveErrors,
+        error: {
+          message: error?.message,
+          code: isPortConflict ? "EADDRINUSE" : error?.code,
+        },
+      },
+    })
+  );
+
+  if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+    console.error(
+      `Backend is still unavailable after ${MAX_CONSECUTIVE_ERRORS} attempts`
+    );
   }
 };
 
@@ -135,6 +150,10 @@ const httpLink = new HttpLink({
   credentials: "include",
   fetchOptions: {
     timeout: TIMEOUT_MS,
+  },
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 

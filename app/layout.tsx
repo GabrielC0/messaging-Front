@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-provider";
 import { ApolloProviderWrapper } from "@/contexts/apollo-provider";
+import { BackendStatusAlert } from "@/components/backend-status-alert";
+import { BackendMonitor } from "@/components/backend-monitor";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "WhatsApp Clone",
@@ -17,7 +20,12 @@ export default function RootLayout({
     <html lang="fr">
       <body>
         <ApolloProviderWrapper>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <BackendMonitor />
+            {children}
+            <BackendStatusAlert />
+            <Toaster />
+          </AuthProvider>
         </ApolloProviderWrapper>
       </body>
     </html>

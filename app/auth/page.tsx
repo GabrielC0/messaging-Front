@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,14 +15,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-provider";
+import { isBackendAvailable } from "@/lib/apollo-client";
 
 export default function AuthPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { login, register } = useAuth();
+  const { login, register, authError, clearAuthError } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<
+    "available" | "unavailable" | "checking"
+  >("checking");
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -34,18 +39,80 @@ export default function AuthPage() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
 
+  // Vérifier la disponibilité du backend
+  useEffect(() => {
+    setBackendStatus(isBackendAvailable ? "available" : "unavailable");
+
+    // Écouter les événements de déconnexion du backend
+    const handleBackendUnreachable = () => {
+      setBackendStatus("unavailable");
+      toast({
+        title: "Serveur indisponible",
+        description: "Mode hors-ligne activé. Données limitées.",
+        variant: "destructive",
+      });
+    };
+
+    // Écouter les événements de reconnexion au backend
+    const handleBackendReconnected = () => {
+      setBackendStatus("available");
+      toast({
+        title: "Connexion rétablie",
+        description: "Le serveur est à nouveau disponible.",
+      });
+    };
+
+    window.addEventListener("backend-unreachable", handleBackendUnreachable);
+    window.addEventListener("backend-reconnected", handleBackendReconnected);
+
+    return () => {
+      window.removeEventListener(
+        "backend-unreachable",
+        handleBackendUnreachable
+      );
+      window.removeEventListener(
+        "backend-reconnected",
+        handleBackendReconnected
+      );
+    };
+  }, [toast]);
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearAuthError();
     setIsLoading(true);
 
     try {
+      // Validation basique côté client
+      if (!loginEmail.trim()) {
+        toast({
+          title: "Erreur de validation",
+          description: "L'email est requis",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!loginPassword || loginPassword.length < 6) {
+        toast({
+          title: "Erreur de validation",
+          description: "Le mot de passe doit contenir au moins 6 caractères",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const success = await login(loginEmail, loginPassword);
 
       if (success) {
         toast({
           title: "Connexion réussie",
-          description: "Vous êtes maintenant connecté",
+          description:
+            backendStatus === "unavailable"
+              ? "Connecté en mode hors-ligne"
+              : "Vous êtes maintenant connecté",
         });
+      } else if (authError) {
+        // L'erreur sera affichée via authError dans le formulaire
       } else {
         throw new Error("Échec de la connexion");
       }
@@ -59,15 +126,53 @@ export default function AuthPage() {
       setIsLoading(false);
     }
   };
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearAuthError();
     setIsLoading(true);
 
     try {
+      // Validation côté client
+      if (!registerName || registerName.length < 3) {
+        toast({
+          title: "Erreur de validation",
+          description:
+            "Le nom d'utilisateur doit contenir au moins 3 caractères",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!registerEmail || !registerEmail.includes("@")) {
+        toast({
+          title: "Erreur de validation",
+          description: "Email invalide",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!registerPassword || registerPassword.length < 6) {
+        toast({
+          title: "Erreur de validation",
+          description: "Le mot de passe doit contenir au moins 6 caractères",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Validation
       if (registerPassword !== registerConfirmPassword) {
-        throw new Error("Les mots de passe ne correspondent pas");
+        toast({
+          title: "Erreur de validation",
+          description: "Les mots de passe ne correspondent pas",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
       }
 
       const success = await register(
@@ -79,8 +184,13 @@ export default function AuthPage() {
       if (success) {
         toast({
           title: "Inscription réussie",
-          description: "Votre compte a été créé avec succès",
+          description:
+            backendStatus === "unavailable"
+              ? "Compte créé en mode hors-ligne"
+              : "Votre compte a été créé avec succès",
         });
+      } else if (authError) {
+        // L'erreur sera affichée via authError dans le formulaire
       } else {
         throw new Error("Échec de l'inscription");
       }
@@ -95,7 +205,6 @@ export default function AuthPage() {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="h-screen flex items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-md">
@@ -104,6 +213,23 @@ export default function AuthPage() {
           <CardDescription>
             Connectez-vous ou créez un compte pour commencer à discuter
           </CardDescription>
+
+          {backendStatus === "unavailable" && (
+            <Alert className="mt-4 bg-yellow-100 border-yellow-200">
+              <AlertDescription className="text-sm text-yellow-800">
+                Serveur indisponible. Mode hors-ligne activé. Fonctionnalités
+                limitées.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {authError && (
+            <Alert className="mt-4 bg-red-100 border-red-200">
+              <AlertDescription className="text-sm text-red-800">
+                {authError}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
