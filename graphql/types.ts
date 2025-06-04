@@ -5,6 +5,7 @@ export interface User {
   username: string;
   email: string;
   avatarUrl?: string;
+  conversations?: Conversation[];
   createdAt: string;
   updatedAt: string;
 }

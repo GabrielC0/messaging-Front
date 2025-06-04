@@ -9,6 +9,7 @@ import {
   CREATE_USER,
   CREATE_CONVERSATION,
   CREATE_MESSAGE,
+  LOGIN_USER,
 } from "./queries";
 import {
   User,
@@ -24,12 +25,13 @@ import {
   CreateUserResponse,
   CreateConversationResponse,
   CreateMessageResponse,
+  LoginMutationResponse,
 } from "./types";
 import { useState, useEffect } from "react";
 import { isBackendAvailable } from "@/lib/apollo-client";
 
-// Utilitaire amélioré pour déterminer si nous devons utiliser des données fictives
-const shouldUseMockData = (error: ApolloError | undefined) => {
+// Utilitaire amélioré pour déterminer si nous devons afficher une erreur de connexion
+const hasConnectionError = (error: ApolloError | undefined) => {
   // Si le backend est explicitement marqué comme indisponible
   if (!isBackendAvailable) {
     return true;
@@ -58,18 +60,41 @@ const shouldUseMockData = (error: ApolloError | undefined) => {
 
 // Hook pour obtenir tous les utilisateurs
 export function useUsers() {
-  const { data, loading, error, refetch } =
-    useQuery<GetUsersResponse>(GET_USERS);
-  const [useMock] = useState(false);
+  const { data, loading, error, refetch } = useQuery<GetUsersResponse>(
+    GET_USERS,
+    {
+      fetchPolicy: "network-only",
+    }
+  );
 
   useEffect(() => {
     if (error) {
       console.warn("Error fetching users:", error);
+      if (hasConnectionError(error)) {
+        console.log("Connection error detected");
+      }
     }
   }, [error]);
 
+  useEffect(() => {
+    if (data?.users) {
+      console.log("========= Users from Database =========");
+      console.log("Total users:", data.users.length);
+      console.table(
+        data.users.map((user) => ({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+        }))
+      );
+      console.log("=====================================");
+    }
+  }, [data]);
+
+  const users = data?.users || [];
+
   return {
-    users: data?.users || [],
+    users,
     loading,
     error,
     refetch,
@@ -90,9 +115,32 @@ export function useUser(id: string) {
       console.warn("Error fetching user:", error);
     }
   }, [error]);
-
   return {
     user: data?.user || null,
+    loading,
+    error,
+    refetch,
+  };
+}
+
+// Hook pour obtenir un utilisateur par email
+export function useUserByEmail(email: string) {
+  const { data, loading, error, refetch } = useQuery<GetUserByEmailResponse>(
+    GET_USER_BY_EMAIL,
+    {
+      variables: { email },
+      skip: !email,
+    }
+  );
+
+  useEffect(() => {
+    if (error) {
+      console.warn("Error fetching user by email:", error);
+    }
+  }, [error]);
+
+  return {
+    user: data?.userByEmail || null,
     loading,
     error,
     refetch,
@@ -152,12 +200,28 @@ export function useCreateUser() {
 
   const createUser = async (input: CreateUserInput) => {
     try {
+      console.log("Attempting to create user with input:", input);
       const response = await createUserMutation({
         variables: { createUserInput: input },
       });
-      return response.data?.createUser || null;
+
+      if (response.data?.createUser) {
+        console.log("User successfully created:", response.data.createUser);
+        // Retourner les données de l'utilisateur créé
+        return response.data.createUser;
+      } else {
+        console.warn("User creation returned no data");
+        return null;
+      }
     } catch (err) {
       console.error("Error creating user:", err);
+      if (err instanceof Error) {
+        console.error("Error details:", {
+          message: err.message,
+          name: err.name,
+          stack: err.stack,
+        });
+      }
       return null;
     }
   };

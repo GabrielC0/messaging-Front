@@ -22,22 +22,41 @@ export function ContactsModal({
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
 
-  const { users: allUsers, loading: loadingUsers } = useUsers();
+  const { users: allUsers, loading: loadingUsers, error } = useUsers();
   const { conversations } = useUserConversations(user?.id || "");
 
   if (!isOpen) return null;
 
-  const filteredUsers = allUsers.filter(
-    (contact) =>
-      contact.id !== user?.id && // Ne pas afficher l'utilisateur actuel
-      (contact.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.email.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Log des données reçues
+  console.log("Current user:", user);
+  console.log("All users before filtering:", allUsers);
+
+  const filteredUsers = allUsers.filter((contact) => {
+    const isCurrentUser = contact.id === user?.id;
+    const matchesSearch =
+      contact.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (isCurrentUser) {
+      console.log("Excluding current user:", contact);
+    }
+    if (!matchesSearch) {
+      console.log("User doesn't match search:", contact);
+    }
+
+    return !isCurrentUser && matchesSearch;
+  });
+
+  console.log("Filtered users:", filteredUsers);
 
   const isInConversation = (userId: string) => {
-    return conversations.some((conv) =>
+    const result = conversations.some((conv) =>
       conv.participants.some((participant) => participant.id === userId)
     );
+    if (result) {
+      console.log("User already in conversation:", userId);
+    }
+    return result;
   };
 
   return (

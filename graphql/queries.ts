@@ -112,3 +112,12 @@ export const CREATE_MESSAGE = gql`
   }
   ${MESSAGE_FRAGMENT}
 `;
+
+export const REGISTER = gql`
+  mutation Register($createUserInput: CreateUserInput!) {
+    createUser(createUserInput: $createUserInput) {
+      ...UserFragment
+    }
+  }
+  ${USER_FRAGMENT}
+`;
