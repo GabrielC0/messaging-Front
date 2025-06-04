@@ -38,6 +38,20 @@ export interface CreateMessageResponse {
   };
 }
 
+// TODO: À implémenter plus tard - Ces interfaces seront activées quand le backend GraphQL
+// supportera la mise à jour du profil utilisateur
+/*
+export interface UpdateUserInput {
+  userId: string;
+  username?: string;
+  avatarUrl?: string;
+}
+
+export interface UpdateUserResponse {
+  updateUser: User;
+}
+*/
+
 export interface Conversation {
   id: string;
   title?: string;
@@ -48,12 +62,54 @@ export interface Conversation {
   updatedAt: string;
 }
 
+// TODO: À implémenter plus tard - Ces interfaces seront activées quand le backend GraphQL
+// supportera la mise à jour des conversations
+/*
+export interface UpdateConversationInput {
+  conversationId: string;
+  title?: string;
+  participantIds?: string[];
+}
+
+export interface UpdateConversationResponse {
+  updateConversation: Conversation;
+}
+*/
+
 // Types pour les inputs des mutations
 export interface CreateUserInput {
   username: string;
   email: string;
   avatarUrl?: string;
 }
+
+// TODO: À implémenter plus tard - Ce type sera activé quand le backend GraphQL
+// supportera la mise à jour du profil utilisateur
+/*
+export interface UpdateUserInput {
+  userId: string;
+  username?: string;
+  avatarUrl?: string;
+}
+
+export interface UpdateUserResponse {
+  updateUser: User;
+}
+*/
+
+// TODO: À implémenter plus tard - Ces interfaces seront activées quand le backend GraphQL
+// supportera la mise à jour des conversations
+/*
+export interface UpdateConversationInput {
+  conversationId: string;
+  title?: string;
+  participantIds?: string[];
+}
+
+export interface UpdateConversationResponse {
+  updateConversation: Conversation;
+}
+*/
 
 export interface CreateConversationInput {
   title?: string;

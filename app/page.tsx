@@ -89,43 +89,36 @@ export default function ChatApp() {
       </div>
     );
   }
-  return (
-    <div className="h-screen bg-gray-100 flex">
-      {/* Sidebar - Hidden on mobile when chat is selected */}
-      <div
-        className={`${
-          isMobile && selectedConversation ? "hidden md:flex" : "flex"
-        } flex-col`}
-      >
-        <ChatSidebar
-          selectedConversation={selectedConversation}
-          onSelectConversation={handleSelectConversation}
-          onShowProfile={() => setShowProfile(true)}
-          onShowSettings={() => setShowSettings(true)}
-          onShowContacts={() => setShowContacts(true)}
-          onNewConversation={() => setShowNewConversation(true)}
-        />
-      </div>
 
-      {/* Chat Window */}
-      <div
-        className={`${
-          !selectedConversation ? "hidden md:flex" : "flex"
-        } flex-1`}
-      >
+  return (
+    <main className="flex h-screen bg-gray-100">
+      {/* Barre latérale des conversations */}
+      <ChatSidebar
+        selectedConversation={selectedConversation}
+        onSelectConversation={handleSelectConversation}
+        onShowProfile={() => setShowProfile(true)}
+        onShowSettings={() => setShowSettings(true)}
+        onShowContacts={() => setShowContacts(true)}
+        onNewConversation={() => setShowNewConversation(true)}
+      />
+
+      {/* Zone de chat principale */}
+      <div className="flex-1 flex">
         {selectedConversation ? (
           <ChatWindow
+            key={selectedConversation}
             conversationId={selectedConversation}
             onBack={handleBackToList}
+            showBackButton={isMobile}
           />
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-blue-50">
+          <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center">
-              <MessageCircle className="h-16 w-16 text-blue-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Bienvenue dans votre chat
+              <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-gray-900 mb-1">
+                WhatsApp Clone
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-500">
                 Sélectionnez une conversation pour commencer à discuter
               </p>
             </div>
@@ -134,27 +127,32 @@ export default function ChatApp() {
       </div>
 
       {/* Modals */}
-      <ProfileModal
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-      />
-
-      <ContactsModal
-        isOpen={showContacts}
-        onClose={() => setShowContacts(false)}
-        onStartChat={handleStartChat}
-      />
-
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-      />
-
-      <NewConversationModal
-        isOpen={showNewConversation}
-        onClose={() => setShowNewConversation(false)}
-        onStartChat={handleStartChat}
-      />
-    </div>
+      {showProfile && (
+        <ProfileModal
+          isOpen={showProfile}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+      {showContacts && (
+        <ContactsModal
+          isOpen={showContacts}
+          onClose={() => setShowContacts(false)}
+          onStartChat={handleStartChat}
+        />
+      )}
+      {showSettings && (
+        <SettingsModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+      {showNewConversation && (
+        <NewConversationModal
+          isOpen={showNewConversation}
+          onClose={() => setShowNewConversation(false)}
+          onStartChat={handleStartChat}
+        />
+      )}
+    </main>
   );
 }

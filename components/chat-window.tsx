@@ -11,6 +11,8 @@ import {
   Video,
   ArrowLeft,
   MessageCircle,
+  ChevronLeft,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,7 @@ import {
 interface ChatWindowProps {
   conversationId: string;
   onBack: () => void;
+  showBackButton?: boolean;
 }
 
 // Fonction utilitaire pour formater le temps des messages
@@ -35,7 +38,11 @@ function formatMessageTime(timestamp: string) {
   return format(date, "HH:mm", { locale: fr });
 }
 
-export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
+export function ChatWindow({
+  conversationId,
+  onBack,
+  showBackButton,
+}: ChatWindowProps) {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
@@ -107,83 +114,86 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
     conversation.title || otherParticipant?.username || "Chat";
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      {/* Chat Header */}
-      <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden mr-2"
-          onClick={onBack}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <Avatar className="h-9 w-9">
-          <AvatarImage
-            src={otherParticipant?.avatarUrl || "/placeholder.svg"}
-          />
-          <AvatarFallback>{displayName[0]}</AvatarFallback>
-        </Avatar>
-        <div className="ml-3">
-          <div className="font-medium">{displayName}</div>
-          {/* TODO: À implémenter plus tard - Statut en ligne
-            Cette fonctionnalité sera implémentée quand le backend GraphQL
-            supportera la gestion du statut en ligne des utilisateurs */}
+    <div className="flex-1 flex flex-col bg-gray-50 border-l border-gray-200">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+        {showBackButton && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="mr-2 text-gray-600 hover:text-gray-900"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+        )}
+
+        <div className="flex items-center flex-1">
+          <Avatar className="h-8 w-8">
+            <AvatarImage
+              src={otherParticipant?.avatarUrl || "/placeholder.svg"}
+            />
+            <AvatarFallback>
+              {otherParticipant?.username?.[0] || "?"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="ml-3">
+            <h2 className="font-medium text-sm text-gray-900">
+              {otherParticipant?.username || "Conversation"}
+            </h2>
+            {/* TODO: À implémenter plus tard - Statut en ligne */}
+            {/* <p className="text-xs text-gray-500">En ligne</p> */}
+          </div>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages List */}
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        ref={messagesEndRef}
+      >
         {loadingMessages ? (
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center h-full">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex justify-center">
-            <p className="text-gray-500">Aucun message</p>
+          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+            <MessageSquare className="h-12 w-12 mb-2" />
+            <p>Aucun message</p>
           </div>
         ) : (
-          messages.map((message) => {
-            const isOwnMessage = message.sender.id === user?.id;
-
-            return (
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.sender.id === user?.id ? "justify-end" : "justify-start"
+              }`}
+            >
               <div
-                key={message.id}
-                className={`flex ${
-                  isOwnMessage ? "justify-end" : "justify-start"
+                className={`rounded-lg px-4 py-2 max-w-[70%] break-words ${
+                  message.sender.id === user?.id
+                    ? "bg-blue-500 text-white"
+                    : "bg-white border border-gray-200"
                 }`}
               >
-                <div
-                  className={`max-w-[70%] rounded-lg p-3 ${
-                    isOwnMessage
-                      ? "bg-blue-500 text-white"
-                      : "bg-white border border-gray-200"
-                  }`}
-                >
-                  <div className="break-words">{message.content}</div>
-                  <div className="flex items-center justify-end mt-1 space-x-1">
-                    <span className="text-xs">
-                      {formatMessageTime(message.createdAt)}
-                    </span>
-                    {/* TODO: À implémenter plus tard - Statut de lecture des messages
-                      Ce statut sera ajouté quand le backend supportera cette fonctionnalité */}
-                  </div>
-                </div>
+                <p className="text-sm">{message.content}</p>
+                <p className="text-xs mt-1 opacity-70">
+                  {format(new Date(message.createdAt), "HH:mm")}
+                </p>
               </div>
-            );
-          })
+            </div>
+          ))
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
+      {/* Input */}
       <div className="p-4 bg-white border-t border-gray-200">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSend();
           }}
-          className="flex space-x-2"
+          className="flex items-center space-x-2"
         >
           <Input
             value={newMessage}
@@ -191,8 +201,8 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
             placeholder="Écrivez votre message..."
             className="flex-1"
           />
-          <Button type="submit" disabled={!newMessage.trim()}>
-            <Send className="h-5 w-5" />
+          <Button type="submit" size="sm" disabled={!newMessage.trim()}>
+            <Send className="h-4 w-4" />
           </Button>
         </form>
       </div>

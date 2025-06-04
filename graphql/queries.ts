@@ -136,3 +136,29 @@ export const REGISTER = gql`
   }
   ${USER_FRAGMENT}
 `;
+
+// TODO: À implémenter plus tard - Cette mutation sera activée quand le backend GraphQL
+// supportera la mise à jour du profil utilisateur
+/*
+export const UPDATE_USER = gql`
+  mutation UpdateUser($input: UpdateUserInput!) {
+    updateUser(updateUserInput: $input) {
+      ...UserFragment
+    }
+  }
+  ${USER_FRAGMENT}
+`;
+*/
+
+// TODO: À implémenter plus tard - Cette mutation sera activée quand le backend GraphQL
+// supportera la mise à jour des conversations
+/*
+export const UPDATE_CONVERSATION = gql`
+  mutation UpdateConversation($input: UpdateConversationInput!) {
+    updateConversation(updateConversationInput: $input) {
+      ...ConversationFragment
+    }
+  }
+  ${CONVERSATION_FRAGMENT}
+`;
+*/
