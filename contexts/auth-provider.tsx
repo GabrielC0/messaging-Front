@@ -12,10 +12,8 @@ import { User as GraphQLUser } from "@/graphql/types";
 import { useMutation, useLazyQuery, useQuery } from "@apollo/client";
 import { GET_USER, GET_USERS, CREATE_USER } from "@/graphql/queries";
 
-// Liste des routes publiques (accessibles sans authentification)
 const PUBLIC_ROUTES = ["/auth", "/register"];
 
-// Type représentant un utilisateur dans notre contexte d'authentification
 interface AuthUser extends GraphQLUser {
   email: string;
 }
@@ -72,12 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [createUserMutation] = useMutation(CREATE_USER);
 
-  // Log users data changes
   useEffect(() => {
     console.log("usersData changed:", usersData);
   }, [usersData]);
 
-  // Initialize auth state from localStorage
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -134,7 +130,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthError(null);
   };
 
-  // Fonction pour gérer la connexion et l'inscription
   const register = async (
     email: string,
     username?: string
@@ -147,7 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      // Récupérer la liste des utilisateurs et chercher par email
       console.log("Fetching users before checking email...");
       const { data: refreshedUsers, error: fetchError } = await refetchUsers();
 
@@ -169,14 +163,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (u: GraphQLUser) => u.email.toLowerCase() === email.toLowerCase()
       );
 
-      // Login flow
       if (!username) {
         if (!existingUser) {
           setAuthError("Aucun compte trouvé avec cet email");
           return false;
         }
 
-        // Login success
         console.log("User found, logging in:", existingUser);
         setUser(existingUser as AuthUser);
         setIsAuthenticated(true);
@@ -185,19 +177,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       }
 
-      // Registration flow
       if (existingUser) {
         setAuthError("Un compte existe déjà avec cet email");
         return false;
       }
 
-      // Validation du username pour l'inscription
       if (!username.trim()) {
         setAuthError("Le nom d'utilisateur est requis");
         return false;
       }
 
-      // Create new user
       const { data: createUserData } = await createUserMutation({
         variables: {
           createUserInput: {

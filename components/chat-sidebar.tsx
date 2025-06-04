@@ -75,7 +75,6 @@ export function ChatSidebar({
 
   return (
     <div className="w-full md:w-80 lg:w-96 max-w-sm bg-white flex flex-col h-full shrink-0">
-      {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
@@ -108,7 +107,6 @@ export function ChatSidebar({
             </Button>
           </div>
         </div>
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-blue-300 h-4 w-4" />
           <Input
@@ -120,7 +118,6 @@ export function ChatSidebar({
         </div>
       </div>
 
-      {/* Conversations List */}
       <div className="flex-1 overflow-y-auto border-r border-gray-200">
         {loadingConversations ? (
           <div className="flex justify-center items-center h-20">

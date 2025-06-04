@@ -32,7 +32,8 @@ interface ChatWindowProps {
   showBackButton?: boolean;
 }
 
-// Fonction utilitaire pour formater le temps des messages
+// TODO: À implémenter plus tard - Mise à jour du statut de lecture des messages
+// Cette fonctionnalité sera implémentée quand le backend supportera la mise à jour du statut
 function formatMessageTime(timestamp: string) {
   const date = new Date(timestamp);
   return format(date, "HH:mm", { locale: fr });
@@ -71,7 +72,6 @@ export function ChatWindow({
   const conversation = conversations.find((c) => c.id === conversationId);
 
   useEffect(() => {
-    // Scroll to bottom when messages change
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
@@ -104,18 +104,15 @@ export function ChatWindow({
     );
   }
 
-  // Find the other participant (for direct messages)
   const otherParticipant = conversation.participants.find(
     (p) => p.id !== user?.id
   );
 
-  // Get the display name (group name or participant name)
   const displayName =
     conversation.title || otherParticipant?.username || "Chat";
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 border-l border-gray-200">
-      {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
         {showBackButton && (
           <Button
@@ -127,7 +124,6 @@ export function ChatWindow({
             <ChevronLeft className="h-5 w-5" />
           </Button>
         )}
-
         <div className="flex items-center flex-1">
           <Avatar className="h-8 w-8">
             <AvatarImage
@@ -142,12 +138,10 @@ export function ChatWindow({
               {otherParticipant?.username || "Conversation"}
             </h2>
             {/* TODO: À implémenter plus tard - Statut en ligne */}
-            {/* <p className="text-xs text-gray-500">En ligne</p> */}
           </div>
         </div>
       </div>
 
-      {/* Messages List */}
       <div
         className="flex-1 overflow-y-auto p-4 space-y-4"
         ref={messagesEndRef}
@@ -186,7 +180,6 @@ export function ChatWindow({
         )}
       </div>
 
-      {/* Input */}
       <div className="p-4 bg-white border-t border-gray-200">
         <form
           onSubmit={(e) => {

@@ -17,7 +17,6 @@ export function ApolloProviderWrapper({ children }: { children: ReactNode }) {
     useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
-  // Fonction pour vérifier la connexion au backend
   const checkConnection = async () => {
     try {
       const isAvailable = await checkBackendAvailability();
@@ -30,10 +29,8 @@ export function ApolloProviderWrapper({ children }: { children: ReactNode }) {
         setIsOfflineMode(true);
         console.warn("Backend unavailable, using offline mode with mock data");
       } else if (connectionError) {
-        // Si on avait une erreur précédemment mais que maintenant ça fonctionne
         setConnectionError(null);
         setIsOfflineMode(false);
-        // Réinitialiser le cache pour forcer le rechargement des données depuis le serveur
         resetApolloCache();
         console.log("Backend connection restored, switched to online mode");
       }
@@ -45,17 +42,13 @@ export function ApolloProviderWrapper({ children }: { children: ReactNode }) {
     }
   };
 
-  // Vérification initiale de la connexion
   useEffect(() => {
     checkConnection();
   }, []);
 
-  // Démarrer la surveillance périodique du backend
   useEffect(() => {
-    // Vérifier toutes les 30 secondes
     const cleanup = startBackendMonitoring(30000);
 
-    // Gestionnaire pour les événements de reconnexion
     const handleReconnection = () => {
       console.log("Backend reconnected!");
       setIsOfflineMode(false);
@@ -71,7 +64,6 @@ export function ApolloProviderWrapper({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Écouter les événements d'erreur réseau pour tenter une reconnexion
   useEffect(() => {
     const handleNetworkError = (event: Event) => {
       const detail = (event as CustomEvent).detail;
@@ -81,14 +73,12 @@ export function ApolloProviderWrapper({ children }: { children: ReactNode }) {
 
       if (!hasAttemptedReconnection) {
         console.log("Scheduling reconnection attempt in 5 seconds...");
-        // Essayer de se reconnecter après 5 secondes
         setTimeout(() => {
           setHasAttemptedReconnection(true);
           checkConnection();
         }, 5000);
       }
 
-      // Passer en mode hors ligne après plusieurs tentatives
       if (detail.consecutive >= 3) {
         setIsOfflineMode(true);
       }
@@ -106,7 +96,6 @@ export function ApolloProviderWrapper({ children }: { children: ReactNode }) {
     };
   }, [hasAttemptedReconnection]);
 
-  // Si on est encore en train de se connecter, afficher un indicateur de chargement
   if (isConnecting) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -118,7 +107,6 @@ export function ApolloProviderWrapper({ children }: { children: ReactNode }) {
     );
   }
 
-  // Si on est en mode hors ligne, afficher un indicateur dans l'interface
   const offlineNotification = isOfflineMode ? (
     <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white p-2 text-center text-sm z-50">
       Mode hors ligne - Utilisation de données locales

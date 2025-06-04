@@ -8,15 +8,12 @@ import {
 
 export function BackendMonitor() {
   useEffect(() => {
-    // Vérifier immédiatement la disponibilité du backend au chargement
     checkBackendAvailability();
 
-    // Démarrer la surveillance périodique
-    const cleanup = startBackendMonitoring(30000); // Vérification toutes les 30 secondes
+    const cleanup = startBackendMonitoring(30000);
 
     return cleanup;
   }, []);
 
-  // Ce composant ne rend rien visuellement
   return null;
 }

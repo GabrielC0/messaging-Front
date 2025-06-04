@@ -31,19 +31,15 @@ import {
 import { useState, useEffect } from "react";
 import { isBackendAvailable } from "@/lib/apollo-client";
 
-// Utilitaire amélioré pour déterminer si nous devons afficher une erreur de connexion
 const hasConnectionError = (error: ApolloError | undefined) => {
-  // Si le backend est explicitement marqué comme indisponible
   if (!isBackendAvailable) {
     return true;
   }
 
-  // Si une erreur réseau est présente
   if (error?.networkError) {
     return true;
   }
 
-  // Si une erreur GraphQL indique un problème de connexion ou d'authentification
   if (
     error?.graphQLErrors?.some(
       (err) =>
@@ -59,7 +55,6 @@ const hasConnectionError = (error: ApolloError | undefined) => {
   return false;
 };
 
-// Hook pour obtenir tous les utilisateurs
 export function useUsers() {
   const { data, loading, error, refetch } = useQuery<GetUsersResponse>(
     GET_USERS,
@@ -102,7 +97,6 @@ export function useUsers() {
   };
 }
 
-// Hook pour obtenir un utilisateur spécifique
 export function useUser(id: string) {
   const { data, loading, error, refetch } = useQuery<GetUserResponse>(
     GET_USER,
@@ -124,7 +118,6 @@ export function useUser(id: string) {
   };
 }
 
-// Hook pour obtenir un utilisateur par email
 export function useUserByEmail(email: string) {
   const { data, loading, error, refetch } = useQuery<GetUserByEmailResponse>(
     GET_USER_BY_EMAIL,
@@ -148,7 +141,6 @@ export function useUserByEmail(email: string) {
   };
 }
 
-// Hook pour obtenir les conversations d'un utilisateur
 export function useUserConversations(userId: string) {
   const { data, loading, error, refetch } =
     useQuery<GetUserConversationsResponse>(GET_USER_CONVERSATIONS, {
@@ -170,7 +162,6 @@ export function useUserConversations(userId: string) {
   };
 }
 
-// Hook pour obtenir les messages d'une conversation
 export function useConversationMessages(conversationId: string) {
   const { data, loading, error, refetch } =
     useQuery<GetConversationMessagesResponse>(GET_CONVERSATION_MESSAGES, {
@@ -192,7 +183,6 @@ export function useConversationMessages(conversationId: string) {
   };
 }
 
-// Hook pour créer un utilisateur
 export function useCreateUser() {
   const [createUserMutation, { loading, error }] = useMutation<
     CreateUserResponse,
@@ -208,7 +198,6 @@ export function useCreateUser() {
 
       if (response.data?.createUser) {
         console.log("User successfully created:", response.data.createUser);
-        // Retourner les données de l'utilisateur créé
         return response.data.createUser;
       } else {
         console.warn("User creation returned no data");
@@ -230,7 +219,6 @@ export function useCreateUser() {
   return { createUser, loading, error };
 }
 
-// Hook pour créer une conversation
 export function useCreateConversation() {
   const [createConversationMutation, { loading, error }] = useMutation<
     CreateConversationResponse,
@@ -252,7 +240,6 @@ export function useCreateConversation() {
   return { createConversation, loading, error };
 }
 
-// Hook pour créer un message
 export function useCreateMessage() {
   const [createMessageMutation, { loading, error }] = useMutation<
     CreateMessageResponse,

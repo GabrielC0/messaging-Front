@@ -29,7 +29,6 @@ export default function ChatApp() {
   );
   const { createConversation } = useCreateConversation();
 
-  // Redirect to auth page if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/auth");
@@ -48,16 +47,13 @@ export default function ChatApp() {
 
   const handleStartChat = async (userId: string) => {
     try {
-      // Vérifier si une conversation existe déjà avec cet utilisateur
       const existingConv = conversations.find((conv) =>
         conv.participants.some((p) => p.id === userId)
       );
 
       if (existingConv) {
-        // Conversation existante trouvée
         setSelectedConversation(existingConv.id);
       } else if (user) {
-        // Créer une nouvelle conversation
         const newConversation = await createConversation({
           participantIds: [user.id, userId],
         });
@@ -74,11 +70,6 @@ export default function ChatApp() {
     }
   };
 
-  const handleNewConversation = () => {
-    setShowNewConversation(true);
-  };
-
-  // Afficher un écran de chargement pendant la vérification de l'authentification
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-100">
@@ -92,18 +83,26 @@ export default function ChatApp() {
 
   return (
     <main className="flex h-screen bg-gray-100">
-      {/* Barre latérale des conversations */}
-      <ChatSidebar
-        selectedConversation={selectedConversation}
-        onSelectConversation={handleSelectConversation}
-        onShowProfile={() => setShowProfile(true)}
-        onShowSettings={() => setShowSettings(true)}
-        onShowContacts={() => setShowContacts(true)}
-        onNewConversation={() => setShowNewConversation(true)}
-      />
+      <div
+        className={`${
+          isMobile && selectedConversation ? "hidden md:flex" : "flex"
+        } flex-col`}
+      >
+        <ChatSidebar
+          selectedConversation={selectedConversation}
+          onSelectConversation={handleSelectConversation}
+          onShowProfile={() => setShowProfile(true)}
+          onShowSettings={() => setShowSettings(true)}
+          onShowContacts={() => setShowContacts(true)}
+          onNewConversation={() => setShowNewConversation(true)}
+        />
+      </div>
 
-      {/* Zone de chat principale */}
-      <div className="flex-1 flex">
+      <div
+        className={`${
+          !selectedConversation ? "hidden md:flex" : "flex"
+        } flex-1`}
+      >
         {selectedConversation ? (
           <ChatWindow
             key={selectedConversation}
@@ -126,7 +125,6 @@ export default function ChatApp() {
         )}
       </div>
 
-      {/* Modals */}
       {showProfile && (
         <ProfileModal
           isOpen={showProfile}

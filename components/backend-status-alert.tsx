@@ -14,16 +14,13 @@ export function BackendStatusAlert() {
   const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
 
   useEffect(() => {
-    // Initialiser l'état avec la disponibilité actuelle du backend
     setBackendStatus(isBackendAvailable ? "available" : "unavailable");
     setVisible(!isBackendAvailable);
 
-    // Gérer les événements de changement d'état du backend
     const handleBackendUnreachable = (event: Event) => {
       const customEvent = event as CustomEvent;
       const error = customEvent.detail?.error;
 
-      // Check specifically for EADDRINUSE error
       if (error?.code === "EADDRINUSE") {
         setBackendStatus("port-conflict");
       } else {
@@ -43,12 +40,10 @@ export function BackendStatusAlert() {
       setReconnectionAttempts(0);
     };
 
-    // S'abonner aux événements
     window.addEventListener("backend-unreachable", handleBackendUnreachable);
     window.addEventListener("backend-reconnected", handleBackendReconnected);
     window.addEventListener("apollo-network-error", handleBackendUnreachable);
 
-    // Nettoyer les abonnements
     return () => {
       window.removeEventListener(
         "backend-unreachable",

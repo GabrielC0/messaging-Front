@@ -11,24 +11,19 @@ import {
 import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 
-// Configuration du délai d'expiration des requêtes
-const TIMEOUT_MS = 5000; // 5 secondes
+const TIMEOUT_MS = 5000;
 const BACKEND_URL = "http://localhost:3002/graphql"; // Nouveau port pour NestJS
 
-// Toujours utiliser le backend réel
 export let isBackendAvailable = true;
 
-// Fonction pour démarrer une surveillance périodique du backend
 export const startBackendMonitoring = (interval = 30000) => {
   const timerId = setInterval(async () => {
     await checkBackendAvailability();
   }, interval);
 
-  // Retourner une fonction de nettoyage pour arrêter la surveillance
   return () => clearInterval(timerId);
 };
 
-// Fonction simplifiée pour vérifier si le backend est disponible
 export const checkBackendAvailability = async (): Promise<boolean> => {
   try {
     console.log("Checking backend availability...");
@@ -49,7 +44,6 @@ export const checkBackendAvailability = async (): Promise<boolean> => {
     isBackendAvailable = response.ok;
     console.log("Backend is available:", isBackendAvailable);
 
-    // Dispatch event if status changes from offline to online
     if (!prevStatus && isBackendAvailable) {
       window.dispatchEvent(new CustomEvent("backend-reconnected"));
     }

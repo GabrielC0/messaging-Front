@@ -33,7 +33,6 @@ export default function ErrorPage({
     setBackendStatus(isBackendAvailable ? "available" : "unavailable");
   }, []);
 
-  // Fonction pour vérifier manuellement la disponibilité du backend
   const checkBackend = async () => {
     setCheckingBackend(true);
     try {

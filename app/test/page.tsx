@@ -24,7 +24,6 @@ export default function TestPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
 
-  // Vérifier la connexion au backend
   const testConnection = async () => {
     setIsLoading(true);
     setTestResult(null);
@@ -47,9 +46,7 @@ export default function TestPage() {
     }
   };
 
-  // Simuler une erreur de connexion
   const simulateConnectionError = () => {
-    // Créer un événement personnalisé d'erreur réseau
     window.dispatchEvent(
       new CustomEvent("apollo-network-error", {
         detail: {
@@ -63,7 +60,6 @@ export default function TestPage() {
     setTestResult("Erreur réseau simulée");
   };
 
-  // Réinitialiser le cache Apollo
   const handleResetCache = () => {
     resetApolloCache();
     setTestResult("Cache Apollo réinitialisé");

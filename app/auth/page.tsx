@@ -27,21 +27,16 @@ export default function AuthPage() {
     "available" | "unavailable" | "checking"
   >("checking");
 
-  // State pour gérer les onglets
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
-  // Register form state
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
 
-  // Login form state
   const [loginEmail, setLoginEmail] = useState("");
 
-  // Vérifier la disponibilité du backend
   useEffect(() => {
     setBackendStatus(isBackendAvailable ? "available" : "unavailable");
 
-    // Écouter les événements de déconnexion du backend
     const handleBackendUnreachable = () => {
       setBackendStatus("unavailable");
       toast({
@@ -51,7 +46,6 @@ export default function AuthPage() {
       });
     };
 
-    // Écouter les événements de reconnexion au backend
     const handleBackendReconnected = () => {
       setBackendStatus("available");
       toast({
@@ -81,7 +75,6 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
-      // Validation basique côté client
       if (!loginEmail.trim()) {
         toast({
           title: "Erreur de validation",
@@ -121,7 +114,6 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
-      // Validation basique côté client
       if (!registerEmail.trim()) {
         toast({
           title: "Erreur de validation",

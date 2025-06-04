@@ -24,7 +24,6 @@ export default function ChatApp() {
   const [showNewConversation, setShowNewConversation] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Redirect to auth page if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/auth");
@@ -42,7 +41,6 @@ export default function ChatApp() {
   };
 
   const handleStartChat = (userId: string) => {
-    // Trouver une conversation existante avec cet utilisateur
     const existingConv = conversations.find(
       (conv) =>
         conv.participants.includes(userId) &&
@@ -50,10 +48,8 @@ export default function ChatApp() {
     );
 
     if (existingConv) {
-      // Conversation existante trouvée
       setSelectedConversation(existingConv.id);
     } else {
-      // Créer une nouvelle conversation
       const newConversation = createNewConversation(
         user?.id || "user-1",
         userId
@@ -67,7 +63,6 @@ export default function ChatApp() {
     setShowNewConversation(true);
   };
 
-  // Afficher un écran de chargement pendant la vérification de l'authentification
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-100">

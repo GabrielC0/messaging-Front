@@ -1,5 +1,3 @@
-// Types qui correspondent aux modèles GraphQL du backend
-
 export interface User {
   id: string;
   username: string;
@@ -121,7 +119,6 @@ export interface CreateMessageInput {
   conversationId: string;
 }
 
-// Types pour les résultats des queries
 export interface GetUsersResponse {
   users: User[];
 }
@@ -138,7 +135,6 @@ export interface GetConversationMessagesResponse {
   conversationMessages: Message[];
 }
 
-// Types pour les résultats des mutations
 export interface CreateUserResponse {
   createUser: User;
 }

@@ -27,7 +27,6 @@ export function ContactsModal({
 
   if (!isOpen) return null;
 
-  // Log des données reçues
   console.log("Current user:", user);
   console.log("All users before filtering:", allUsers);
 
