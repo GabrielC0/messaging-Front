@@ -173,18 +173,21 @@ export function ChatSidebar({
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-sm text-gray-600 truncate">
-                      {/* Le dernier message - à implémenter avec GraphQL */}
                       {conversation.messages && conversation.messages.length > 0
                         ? conversation.messages[
                             conversation.messages.length - 1
                           ].content
                         : "Aucun message"}
                     </p>
-                    {unreadCount > 0 && (
-                      <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                        {unreadCount}
-                      </span>
-                    )}
+                    {conversation.messages &&
+                      conversation.messages.some((msg) => !msg.isRead) && (
+                        <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                          {
+                            conversation.messages.filter((msg) => !msg.isRead)
+                              .length
+                          }
+                        </span>
+                      )}
                   </div>
                 </div>
               </div>

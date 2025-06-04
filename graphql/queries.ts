@@ -33,11 +33,15 @@ export const CONVERSATION_FRAGMENT = gql`
     participants {
       ...UserFragment
     }
+    messages {
+      ...MessageFragment
+    }
     lastActivity
     createdAt
     updatedAt
   }
   ${USER_FRAGMENT}
+  ${MESSAGE_FRAGMENT}
 `;
 
 // Queries
@@ -101,16 +105,27 @@ export const CREATE_CONVERSATION = gql`
 export const CREATE_MESSAGE = gql`
   mutation CreateMessage(
     $createMessageInput: CreateMessageInput!
-    $senderId: String!
+    $senderId: ID!
   ) {
     createMessage(
       createMessageInput: $createMessageInput
       senderId: $senderId
     ) {
-      ...MessageFragment
+      id
+      content
+      sender {
+        id
+        username
+      }
+      conversation {
+        id
+        title
+      }
+      isRead
+      createdAt
+      updatedAt
     }
   }
-  ${MESSAGE_FRAGMENT}
 `;
 
 export const REGISTER = gql`

@@ -59,6 +59,13 @@ export function ContactsModal({
     return result;
   };
 
+  const handleStartChat = (userId: string) => {
+    if (!isInConversation(userId)) {
+      onStartChat(userId);
+      onClose();
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-full max-w-md">
@@ -102,9 +109,7 @@ export function ContactsModal({
             filteredUsers.map((contact) => (
               <div
                 key={contact.id}
-                onClick={() =>
-                  !isInConversation(contact.id) && onStartChat(contact.id)
-                }
+                onClick={() => handleStartChat(contact.id)}
                 className={`flex items-center p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-100 ${
                   isInConversation(contact.id)
                     ? "opacity-50 cursor-not-allowed"

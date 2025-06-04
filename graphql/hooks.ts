@@ -255,13 +255,16 @@ export function useCreateConversation() {
 export function useCreateMessage() {
   const [createMessageMutation, { loading, error }] = useMutation<
     CreateMessageResponse,
-    { createMessageInput: CreateMessageInput }
+    { createMessageInput: CreateMessageInput; senderId: string }
   >(CREATE_MESSAGE);
 
-  const createMessage = async (input: CreateMessageInput) => {
+  const createMessage = async (input: CreateMessageInput, senderId: string) => {
     try {
       const response = await createMessageMutation({
-        variables: { createMessageInput: input },
+        variables: {
+          createMessageInput: input,
+          senderId: senderId,
+        },
       });
       return response.data?.createMessage || null;
     } catch (err) {

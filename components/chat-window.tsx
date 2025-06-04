@@ -17,8 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-provider";
-import { useConversationMessages, useCreateMessage } from "@/graphql/hooks";
+import {
+  useConversationMessages,
+  useCreateMessage,
+  useUserConversations,
+} from "@/graphql/hooks";
 import { format } from "date-fns";
+import { Conversation } from "@/graphql/types";
 
 interface ChatWindowProps {
   conversationId: string;
@@ -36,6 +41,7 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
     refetch: refetchMessages,
   } = useConversationMessages(conversationId);
   const { createMessage } = useCreateMessage();
+  const { conversations } = useUserConversations(user?.id || "");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,45 +78,18 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
     return format(new Date(timestamp), "HH:mm");
   };
 
-  // Trouver l'autre participant dans la conversation
+  // Récupérer l'autre participant de la conversation
   const getOtherParticipant = () => {
-    if (!messages || messages.length === 0) return null;
-
-    // Récupérer le premier message pour avoir accès à la conversation
-    const firstMessage = messages[0];
-    if (!firstMessage || !firstMessage.conversation) return null;
-
-    // Trouver le participant qui n'est pas l'utilisateur actuel
-    return firstMessage.conversation.participants.find(
+    const currentConversation = conversations.find(
+      (conv: Conversation) => conv.id === conversationId
+    );
+    if (!currentConversation) return null;
+    return currentConversation.participants.find(
       (participant) => participant.id !== user?.id
     );
   };
 
   const otherParticipant = getOtherParticipant();
-
-  if (loadingMessages) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-blue-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (!conversationId || messages.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-blue-50">
-        <div className="text-center">
-          <MessageCircle className="h-16 w-16 text-blue-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Sélectionnez une conversation
-          </h3>
-          <p className="text-gray-600">
-            Choisissez une conversation pour commencer à discuter
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 flex flex-col bg-blue-50">
@@ -138,11 +117,13 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
               {otherParticipant?.username || "Conversation"}
             </h3>
             <p className="text-sm text-blue-200">
-              {/* Statut en ligne - à implémenter avec GraphQL */}
-              Dernier message:{" "}
-              {messages.length > 0
-                ? formatMessageTime(messages[messages.length - 1].createdAt)
-                : "Jamais"}
+              {loadingMessages
+                ? "Chargement..."
+                : messages.length === 0
+                ? "Aucun message"
+                : `Dernier message: ${formatMessageTime(
+                    messages[messages.length - 1].createdAt
+                  )}`}
             </p>
           </div>
         </div>
@@ -174,49 +155,59 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => {
-          const isOwn = message.sender.id === user?.id;
+        {loadingMessages ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            Démarrez la conversation en envoyant un message
+          </div>
+        ) : (
+          messages.map((message) => {
+            const isOwn = message.sender.id === user?.id;
 
-          return (
-            <div
-              key={message.id}
-              className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
-            >
+            return (
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                  isOwn
-                    ? "bg-blue-500 text-white"
-                    : "bg-white text-gray-900 border border-blue-100"
-                }`}
+                key={message.id}
+                className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
               >
-                <p className="text-sm">{message.content}</p>
                 <div
-                  className={`flex items-center justify-end mt-1 space-x-1 ${
-                    isOwn ? "text-blue-100" : "text-gray-500"
+                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    isOwn
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-900 border border-blue-100"
                   }`}
                 >
-                  <span className="text-xs">
-                    {formatMessageTime(message.createdAt)}
-                  </span>
-                  {isOwn && (
-                    <div className="flex">
-                      <div
-                        className={`w-1 h-1 rounded-full ${
-                          message.isRead ? "bg-blue-200" : "bg-blue-300"
-                        }`}
-                      ></div>
-                      <div
-                        className={`w-1 h-1 rounded-full ml-0.5 ${
-                          message.isRead ? "bg-blue-200" : "bg-blue-300"
-                        }`}
-                      ></div>
-                    </div>
-                  )}
+                  <p className="text-sm">{message.content}</p>
+                  <div
+                    className={`flex items-center justify-end mt-1 space-x-1 ${
+                      isOwn ? "text-blue-100" : "text-gray-500"
+                    }`}
+                  >
+                    <span className="text-xs">
+                      {formatMessageTime(message.createdAt)}
+                    </span>
+                    {isOwn && (
+                      <div className="flex">
+                        <div
+                          className={`w-1 h-1 rounded-full ${
+                            message.isRead ? "bg-blue-200" : "bg-blue-300"
+                          }`}
+                        ></div>
+                        <div
+                          className={`w-1 h-1 rounded-full ml-0.5 ${
+                            message.isRead ? "bg-blue-200" : "bg-blue-300"
+                          }`}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
         <div ref={messagesEndRef} />
       </div>
 

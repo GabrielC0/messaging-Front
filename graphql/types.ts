@@ -20,11 +20,29 @@ export interface Message {
   updatedAt: string;
 }
 
+export interface CreateMessageResponse {
+  createMessage: {
+    id: string;
+    content: string;
+    sender: {
+      id: string;
+      username: string;
+    };
+    conversation: {
+      id: string;
+      title: string;
+    };
+    isRead: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 export interface Conversation {
   id: string;
   title?: string;
   participants: User[];
-  messages?: Message[];
+  messages: Message[];
   lastActivity: string;
   createdAt: string;
   updatedAt: string;
