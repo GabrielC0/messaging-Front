@@ -14,7 +14,6 @@ Une application de messagerie instantanée moderne construite avec Next.js, Grap
 - ✅ Gestion des contacts
 - ✅ Affichage des dates de création et mise à jour des conversations
 - ✅ Profil utilisateur avec avatar
-- ✅ Mode hors-ligne avec détection automatique de la connexion au backend
 
 ### À venir
 
