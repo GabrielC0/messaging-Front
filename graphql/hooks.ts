@@ -10,6 +10,7 @@ import {
   CREATE_CONVERSATION,
   CREATE_MESSAGE,
   LOGIN_USER,
+  UPDATE_MESSAGE_READ_STATUS,
 } from "./queries";
 import {
   User,
@@ -275,3 +276,32 @@ export function useCreateMessage() {
 
   return { createMessage, loading, error };
 }
+
+// TODO: À implémenter plus tard - Hook pour mettre à jour le statut de lecture des messages
+// Cette fonctionnalité sera activée quand le backend supportera la mise à jour du statut de lecture
+// export function useUpdateMessageReadStatus() {
+//   const [updateMessageReadStatusMutation] = useMutation(
+//     UPDATE_MESSAGE_READ_STATUS,
+//     {
+//       refetchQueries: [GET_CONVERSATION_MESSAGES, GET_USER_CONVERSATIONS],
+//     }
+//   );
+
+//   const updateMessageReadStatus = async (
+//     messageIds: string[],
+//     conversationId: string
+//   ) => {
+//     try {
+//       await updateMessageReadStatusMutation({
+//         variables: {
+//           messageIds,
+//           conversationId,
+//         },
+//       });
+//     } catch (error) {
+//       console.error("Error updating message read status:", error);
+//     }
+//   };
+
+//   return { updateMessageReadStatus };
+// }

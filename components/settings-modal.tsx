@@ -1,21 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { X, Bell, Lock, Palette, Globe, HelpCircle, Info } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
+import { useState } from "react";
+import { X, Bell, Lock, Palette, Globe, HelpCircle, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 interface SettingsModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const [notifications, setNotifications] = useState(true)
-  const [readReceipts, setReadReceipts] = useState(true)
-  const [lastSeen, setLastSeen] = useState(true)
+  const [notifications, setNotifications] = useState(true);
+  const [sounds, setSounds] = useState(true);
 
-  if (!isOpen) return null
+  // TODO: À implémenter plus tard - Ces états seront activés quand le backend GraphQL
+  // supportera la gestion du statut en ligne et des accusés de lecture
+  // const [readReceipts, setReadReceipts] = useState(true);
+  // const [lastSeen, setLastSeen] = useState(true);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -23,7 +27,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-lg flex items-center justify-between">
           <h2 className="text-lg font-medium">Paramètres</h2>
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-blue-700 cursor-pointer">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-white hover:bg-blue-700 cursor-pointer"
+          >
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -37,36 +46,62 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <Bell className="h-5 w-5 text-blue-600" />
                 <div>
                   <h3 className="font-medium">Notifications</h3>
-                  <p className="text-sm text-gray-600">Recevoir les notifications</p>
+                  <p className="text-sm text-gray-600">
+                    Recevoir les notifications
+                  </p>
                 </div>
               </div>
-              <Switch checked={notifications} onCheckedChange={setNotifications} />
+              <Switch
+                checked={notifications}
+                onCheckedChange={setNotifications}
+              />
             </div>
           </div>
 
-          {/* Privacy */}
-          <div className="p-4 border-b border-blue-100">
-            <div className="flex items-center space-x-3 mb-4">
-              <Lock className="h-5 w-5 text-blue-600" />
-              <h3 className="font-medium">Confidentialité</h3>
+          <div className="p-4 border-b border-blue-100 cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Bell className="h-5 w-5 text-blue-600" />
+                <div>
+                  <h3 className="font-medium">Sons</h3>
+                  <p className="text-sm text-gray-600">
+                    Jouer un son lors de la réception d'un message
+                  </p>
+                </div>
+              </div>
+              <Switch checked={sounds} onCheckedChange={setSounds} />
             </div>
+          </div>
 
-            <div className="space-y-4 ml-8">
-              <div className="flex items-center justify-between cursor-pointer">
+          {/* TODO: Ces options seront activées quand le backend GraphQL 
+              supportera la gestion du statut en ligne et des accusés de lecture */}
+          <div className="p-4 border-b border-blue-100 opacity-50 cursor-not-allowed">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Lock className="h-5 w-5 text-blue-600" />
                 <div>
-                  <h4 className="text-sm font-medium">Accusés de lecture</h4>
-                  <p className="text-xs text-gray-600">Afficher quand vous avez lu les messages</p>
+                  <h3 className="font-medium">Accusés de lecture</h3>
+                  <p className="text-sm text-gray-600">
+                    Afficher quand vous avez lu les messages
+                  </p>
                 </div>
-                <Switch checked={readReceipts} onCheckedChange={setReadReceipts} />
               </div>
+              <Switch checked={false} disabled />
+            </div>
+          </div>
 
-              <div className="flex items-center justify-between cursor-pointer">
+          <div className="p-4 border-b border-blue-100 opacity-50 cursor-not-allowed">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Lock className="h-5 w-5 text-blue-600" />
                 <div>
-                  <h4 className="text-sm font-medium">Dernière connexion</h4>
-                  <p className="text-xs text-gray-600">Afficher votre dernière connexion</p>
+                  <h3 className="font-medium">Dernière connexion</h3>
+                  <p className="text-sm text-gray-600">
+                    Afficher votre dernière connexion
+                  </p>
                 </div>
-                <Switch checked={lastSeen} onCheckedChange={setLastSeen} />
               </div>
+              <Switch checked={false} disabled />
             </div>
           </div>
 
@@ -98,7 +133,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <HelpCircle className="h-5 w-5 text-blue-600" />
               <div>
                 <h3 className="font-medium">Aide</h3>
-                <p className="text-sm text-gray-600">Centre d'aide et support</p>
+                <p className="text-sm text-gray-600">
+                  Centre d'aide et support
+                </p>
               </div>
             </div>
           </div>
@@ -116,5 +153,5 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

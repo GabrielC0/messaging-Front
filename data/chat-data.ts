@@ -4,8 +4,10 @@ export interface User {
   avatar: string;
   phone: string;
   status: string;
-  lastSeen: string;
-  isOnline: boolean;
+  // TODO: À implémenter plus tard - Ces champs seront activés quand le backend GraphQL
+  // supportera la gestion du statut en ligne
+  // lastSeen: string;
+  // isOnline: boolean;
 }
 
 export interface Message {
@@ -14,7 +16,9 @@ export interface Message {
   content: string;
   timestamp: string;
   type: "text" | "image" | "file";
-  status: "sent" | "delivered" | "read";
+  // TODO: À implémenter plus tard - Ce champ sera activé quand le backend GraphQL
+  // supportera la mise à jour du statut de lecture des messages
+  // status: "sent" | "delivered" | "read";
 }
 
 export interface Conversation {
@@ -23,7 +27,9 @@ export interface Conversation {
   messages: Message[];
   lastMessage: string;
   lastMessageTime: string;
-  unreadCount: number;
+  // TODO: À implémenter plus tard - Ce champ sera activé quand le backend GraphQL
+  // supportera la mise à jour du statut de lecture des messages
+  // unreadCount: number;
   isGroup: boolean;
   groupName?: string;
   groupAvatar?: string;

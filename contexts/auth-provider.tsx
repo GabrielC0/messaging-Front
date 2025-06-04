@@ -149,7 +149,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Récupérer la liste des utilisateurs et chercher par email
       console.log("Fetching users before checking email...");
-      const { data: refreshedUsers } = await refetchUsers();
+      const { data: refreshedUsers, error: fetchError } = await refetchUsers();
+
+      if (fetchError) {
+        console.error("Failed to fetch users:", fetchError);
+        setAuthError("Erreur de connexion au serveur");
+        return false;
+      }
+
       console.log("Refreshed users data:", refreshedUsers);
 
       if (!refreshedUsers?.users) {
@@ -159,11 +166,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const existingUser = refreshedUsers.users.find(
-        (u: GraphQLUser) => u.email === email
+        (u: GraphQLUser) => u.email.toLowerCase() === email.toLowerCase()
       );
 
-      if (existingUser) {
-        // L'utilisateur existe déjà, on le connecte
+      // Login flow
+      if (!username) {
+        if (!existingUser) {
+          setAuthError("Aucun compte trouvé avec cet email");
+          return false;
+        }
+
+        // Login success
         console.log("User found, logging in:", existingUser);
         setUser(existingUser as AuthUser);
         setIsAuthenticated(true);
@@ -172,9 +185,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       }
 
-      // Si on n'a pas de username, c'est une tentative de connexion avec un compte inexistant
-      if (!username) {
-        setAuthError("Aucun compte trouvé avec cet email");
+      // Registration flow
+      if (existingUser) {
+        setAuthError("Un compte existe déjà avec cet email");
         return false;
       }
 
@@ -184,8 +197,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      // Créer l'utilisateur
-      const { data } = await createUserMutation({
+      // Create new user
+      const { data: createUserData } = await createUserMutation({
         variables: {
           createUserInput: {
             username,
@@ -195,18 +208,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
 
-      if (data?.createUser) {
-        console.log("User created successfully:", data.createUser);
-        setUser(data.createUser as AuthUser);
-        setIsAuthenticated(true);
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("currentUserId", data.createUser.id);
-        await refetchUsers(); // Rafraîchir la liste des utilisateurs
-        return true;
+      if (!createUserData?.createUser) {
+        setAuthError("Erreur lors de la création du compte");
+        return false;
       }
 
-      setAuthError("Échec de la création de l'utilisateur");
-      return false;
+      console.log("User created successfully:", createUserData.createUser);
+      setUser(createUserData.createUser as AuthUser);
+      setIsAuthenticated(true);
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("currentUserId", createUserData.createUser.id);
+      await refetchUsers();
+      return true;
     } catch (error) {
       console.error("Auth error:", error);
       setAuthError(

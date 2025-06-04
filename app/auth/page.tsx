@@ -74,6 +74,47 @@ export default function AuthPage() {
       );
     };
   }, [toast]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearAuthError();
+    setIsLoading(true);
+
+    try {
+      // Validation basique côté client
+      if (!loginEmail.trim()) {
+        toast({
+          title: "Erreur de validation",
+          description: "L'email est requis",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Attempting login with:", { email: loginEmail });
+      const success = await register(loginEmail);
+
+      if (success) {
+        console.log("Login successful");
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue",
+        });
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Erreur de connexion",
+        description:
+          error instanceof Error ? error.message : "Une erreur est survenue",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     clearAuthError();
@@ -103,7 +144,9 @@ export default function AuthPage() {
         email: registerEmail,
         username: registerName,
       });
+
       const success = await register(registerEmail, registerName);
+
       if (success) {
         console.log("Registration successful");
         toast({
@@ -111,67 +154,11 @@ export default function AuthPage() {
           description: "Vous êtes maintenant connecté",
         });
         router.push("/");
-      } else {
-        console.error("Registration failed but no error was thrown");
-        toast({
-          title: "Échec de l'inscription",
-          description:
-            "Une erreur s'est produite lors de l'inscription. Veuillez réessayer.",
-          variant: "destructive",
-        });
       }
     } catch (error) {
       console.error("Registration error:", error);
       toast({
         title: "Erreur d'inscription",
-        description:
-          error instanceof Error ? error.message : "Une erreur est survenue",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearAuthError();
-    setIsLoading(true);
-
-    try {
-      // Validation basique côté client
-      if (!loginEmail.trim()) {
-        toast({
-          title: "Erreur de validation",
-          description: "L'email est requis",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      console.log("Attempting login with:", { email: loginEmail });
-      const success = await register(loginEmail);
-      if (success) {
-        console.log("Login successful");
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue",
-        });
-        router.push("/");
-      } else {
-        console.error("Login failed but no error was thrown");
-        toast({
-          title: "Échec de la connexion",
-          description:
-            "Une erreur s'est produite lors de la connexion. Veuillez réessayer.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        title: "Erreur de connexion",
         description:
           error instanceof Error ? error.message : "Une erreur est survenue",
         variant: "destructive",

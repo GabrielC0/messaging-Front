@@ -43,24 +43,19 @@ export function NewConversationModal({
 
   const handleStartChat = async (selectedUserId: string) => {
     try {
-      // Vérifier si une conversation existe déjà avec cet utilisateur
       const existingConversation = conversations.find((conv) =>
         conv.participants.some((p) => p.id === selectedUserId)
       );
 
       if (existingConversation) {
-        // Si une conversation existe déjà, l'utiliser
         onStartChat(existingConversation.id);
-      } else {
-        // Sinon, créer une nouvelle conversation
+      } else if (user) {
         const newConversation = await createConversation({
-          participantIds: [user?.id || "", selectedUserId],
+          participantIds: [user.id, selectedUserId],
         });
 
         if (newConversation) {
-          // Actualiser la liste des conversations
           await refetchConversations();
-          // Ouvrir la nouvelle conversation
           onStartChat(newConversation.id);
         }
       }
@@ -113,7 +108,6 @@ export function NewConversationModal({
             </div>
           ) : (
             filteredUsers.map((otherUser) => {
-              // Vérifier si une conversation existe déjà avec cet utilisateur
               const hasConversation = conversations.some((conv) =>
                 conv.participants.some((p) => p.id === otherUser.id)
               );
@@ -133,7 +127,9 @@ export function NewConversationModal({
                         {otherUser.username[0]}
                       </AvatarFallback>
                     </Avatar>
-                    {/* Status en ligne - à implémenter avec GraphQL */}
+                    {/* TODO: À implémenter plus tard - Statut en ligne
+                      Cette fonctionnalité sera implémentée quand le backend GraphQL
+                      supportera la gestion du statut en ligne des utilisateurs */}
                   </div>
 
                   <div className="ml-3 flex-1">

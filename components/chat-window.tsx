@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useRef, useEffect } from "react";
 import {
   Send,
@@ -17,17 +16,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-provider";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
   useConversationMessages,
   useCreateMessage,
   useUserConversations,
 } from "@/graphql/hooks";
-import { format } from "date-fns";
-import { Conversation } from "@/graphql/types";
 
 interface ChatWindowProps {
   conversationId: string;
   onBack: () => void;
+}
+
+// Fonction utilitaire pour formater le temps des messages
+function formatMessageTime(timestamp: string) {
+  const date = new Date(timestamp);
+  return format(date, "HH:mm", { locale: fr });
 }
 
 export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
@@ -43,165 +48,125 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
   const { createMessage } = useCreateMessage();
   const { conversations } = useUserConversations(user?.id || "");
 
+  // TODO: À implémenter plus tard - Mise à jour du statut de lecture des messages
+  // Cette fonctionnalité sera implémentée quand le backend supportera la mise à jour du statut
+  // useEffect(() => {
+  //   if (messages?.length && user) {
+  //     const unreadMessages = messages
+  //       .filter(msg => !msg.isRead && msg.sender.id !== user.id)
+  //       .map(msg => msg.id);
+  //     if (unreadMessages.length > 0) {
+  //       updateMessageReadStatus(unreadMessages, conversationId);
+  //     }
+  //   }
+  // }, [messages, conversationId, user]);
+
+  const conversation = conversations.find((c) => c.id === conversationId);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Scroll to bottom when messages change
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (newMessage.trim() && user) {
-      try {
-        await createMessage(
-          {
-            content: newMessage.trim(),
-            conversationId: conversationId,
-          },
-          user.id
-        );
+  const handleSend = async () => {
+    if (!newMessage.trim() || !user) return;
 
-        // Actualiser les messages après l'envoi
-        refetchMessages();
-        setNewMessage("");
-      } catch (error) {
-        console.error("Erreur lors de l'envoi du message:", error);
-      }
+    try {
+      await createMessage(
+        {
+          content: newMessage,
+          conversationId,
+        },
+        user.id
+      );
+
+      setNewMessage("");
+      await refetchMessages();
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const formatMessageTime = (timestamp: string) => {
-    return format(new Date(timestamp), "HH:mm");
-  };
-
-  // Récupérer l'autre participant de la conversation
-  const getOtherParticipant = () => {
-    const currentConversation = conversations.find(
-      (conv: Conversation) => conv.id === conversationId
+  if (!conversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-gray-500">Sélectionnez une conversation</p>
+      </div>
     );
-    if (!currentConversation) return null;
-    return currentConversation.participants.find(
-      (participant) => participant.id !== user?.id
-    );
-  };
+  }
 
-  const otherParticipant = getOtherParticipant();
+  // Find the other participant (for direct messages)
+  const otherParticipant = conversation.participants.find(
+    (p) => p.id !== user?.id
+  );
+
+  // Get the display name (group name or participant name)
+  const displayName =
+    conversation.title || otherParticipant?.username || "Chat";
 
   return (
-    <div className="flex-1 flex flex-col bg-blue-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden text-white hover:bg-blue-700 p-2 cursor-pointer"
-            onClick={onBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <Avatar className="h-10 w-10">
-            <AvatarImage
-              src={otherParticipant?.avatarUrl || "/placeholder.svg"}
-            />
-            <AvatarFallback className="bg-blue-500">
-              {otherParticipant?.username ? otherParticipant.username[0] : "?"}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-medium">
-              {otherParticipant?.username || "Conversation"}
-            </h3>
-            <p className="text-sm text-blue-200">
-              {loadingMessages
-                ? "Chargement..."
-                : messages.length === 0
-                ? "Aucun message"
-                : `Dernier message: ${formatMessageTime(
-                    messages[messages.length - 1].createdAt
-                  )}`}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white hover:bg-blue-700 cursor-pointer"
-          >
-            <Video className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white hover:bg-blue-700 cursor-pointer"
-          >
-            <Phone className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white hover:bg-blue-700 cursor-pointer"
-          >
-            <MoreVertical className="h-5 w-5" />
-          </Button>
+    <div className="flex flex-col h-full bg-gray-50">
+      {/* Chat Header */}
+      <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="md:hidden mr-2"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <Avatar className="h-9 w-9">
+          <AvatarImage
+            src={otherParticipant?.avatarUrl || "/placeholder.svg"}
+          />
+          <AvatarFallback>{displayName[0]}</AvatarFallback>
+        </Avatar>
+        <div className="ml-3">
+          <div className="font-medium">{displayName}</div>
+          {/* TODO: À implémenter plus tard - Statut en ligne
+            Cette fonctionnalité sera implémentée quand le backend GraphQL
+            supportera la gestion du statut en ligne des utilisateurs */}
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {loadingMessages ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            Démarrez la conversation en envoyant un message
+          <div className="flex justify-center">
+            <p className="text-gray-500">Aucun message</p>
           </div>
         ) : (
           messages.map((message) => {
-            const isOwn = message.sender.id === user?.id;
+            const isOwnMessage = message.sender.id === user?.id;
 
             return (
               <div
                 key={message.id}
-                className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                className={`flex ${
+                  isOwnMessage ? "justify-end" : "justify-start"
+                }`}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    isOwn
+                  className={`max-w-[70%] rounded-lg p-3 ${
+                    isOwnMessage
                       ? "bg-blue-500 text-white"
-                      : "bg-white text-gray-900 border border-blue-100"
+                      : "bg-white border border-gray-200"
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
-                  <div
-                    className={`flex items-center justify-end mt-1 space-x-1 ${
-                      isOwn ? "text-blue-100" : "text-gray-500"
-                    }`}
-                  >
+                  <div className="break-words">{message.content}</div>
+                  <div className="flex items-center justify-end mt-1 space-x-1">
                     <span className="text-xs">
                       {formatMessageTime(message.createdAt)}
                     </span>
-                    {isOwn && (
-                      <div className="flex">
-                        <div
-                          className={`w-1 h-1 rounded-full ${
-                            message.isRead ? "bg-blue-200" : "bg-blue-300"
-                          }`}
-                        ></div>
-                        <div
-                          className={`w-1 h-1 rounded-full ml-0.5 ${
-                            message.isRead ? "bg-blue-200" : "bg-blue-300"
-                          }`}
-                        ></div>
-                      </div>
-                    )}
+                    {/* TODO: À implémenter plus tard - Statut de lecture des messages
+                      Ce statut sera ajouté quand le backend supportera cette fonctionnalité */}
                   </div>
                 </div>
               </div>
@@ -212,41 +177,24 @@ export function ChatWindow({ conversationId, onBack }: ChatWindowProps) {
       </div>
 
       {/* Message Input */}
-      <div className="bg-white border-t border-blue-100 p-4">
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-blue-600 hover:bg-blue-50 cursor-pointer"
-          >
-            <Paperclip className="h-5 w-5" />
+      <div className="p-4 bg-white border-t border-gray-200">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+          className="flex space-x-2"
+        >
+          <Input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Écrivez votre message..."
+            className="flex-1"
+          />
+          <Button type="submit" disabled={!newMessage.trim()}>
+            <Send className="h-5 w-5" />
           </Button>
-
-          <div className="flex-1 relative">
-            <Input
-              placeholder="Tapez votre message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="pr-10 border-blue-200 focus:border-blue-400 cursor-text"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-600 hover:bg-blue-50 cursor-pointer"
-            >
-              <Smile className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <Button
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+        </form>
       </div>
     </div>
   );

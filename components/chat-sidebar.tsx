@@ -56,7 +56,7 @@ export function ChatSidebar({
     const date = new Date(timeString);
 
     if (isToday(date)) {
-      return format(date, "HH:mm");
+      return format(date, "HH'h'mm");
     } else if (isYesterday(date)) {
       return "Hier";
     } else {
@@ -141,8 +141,9 @@ export function ChatSidebar({
             // Utiliser la première lettre du nom à afficher
             const avatarFallback = displayName[0] || "C";
 
-            // Calculer le nombre de messages non lus (à implémenter avec GraphQL)
-            const unreadCount = 0; // À remplacer par la vraie valeur quand disponible
+            // TODO: À implémenter plus tard - Cette variable sera utilisée quand le backend
+            // supportera la mise à jour du statut de lecture des messages
+            // const unreadCount = 0;
 
             return (
               <div
@@ -159,7 +160,9 @@ export function ChatSidebar({
                       {avatarFallback}
                     </AvatarFallback>
                   </Avatar>
-                  {/* Statut en ligne - à implémenter avec GraphQL */}
+                  {/* TODO: À implémenter plus tard - Statut en ligne
+                    Cette fonctionnalité sera implémentée quand le backend GraphQL
+                    supportera la gestion du statut en ligne des utilisateurs */}
                 </div>
 
                 <div className="ml-3 flex-1 min-w-0">
@@ -179,15 +182,9 @@ export function ChatSidebar({
                           ].content
                         : "Aucun message"}
                     </p>
-                    {conversation.messages &&
-                      conversation.messages.some((msg) => !msg.isRead) && (
-                        <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                          {
-                            conversation.messages.filter((msg) => !msg.isRead)
-                              .length
-                          }
-                        </span>
-                      )}
+                    {/* TODO: À implémenter plus tard - Affichage du compteur de messages non lus
+                      Cette fonctionnalité sera implémentée quand le backend supportera 
+                      la mise à jour du statut de lecture */}
                   </div>
                 </div>
               </div>
