@@ -22,9 +22,10 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   useConversationMessages,
-  useCreateMessage,
-  useUserConversations,
-} from "@/graphql/hooks";
+  useMessaging,
+  useConversation,
+} from "../hooks/use-api";
+import { Message, User } from "../graphql/types";
 
 interface ChatWindowProps {
   conversationId: string;
@@ -49,12 +50,16 @@ export function ChatWindow({
   const { user } = useAuth();
 
   const {
-    messages,
+    data: messagesData,
     loading: loadingMessages,
     refetch: refetchMessages,
   } = useConversationMessages(conversationId);
-  const { createMessage } = useCreateMessage();
-  const { conversations } = useUserConversations(user?.id || "");
+  
+  const { data: conversationData } = useConversation(conversationId);
+  const { sendMessage } = useMessaging();
+
+  const messages = messagesData?.conversationMessages || [];
+  const conversation = conversationData?.conversation;
 
   // TODO: À implémenter plus tard - Mise à jour du statut de lecture des messages
   // Cette fonctionnalité sera implémentée quand le backend supportera la mise à jour du statut
@@ -69,8 +74,6 @@ export function ChatWindow({
   //   }
   // }, [messages, conversationId, user]);
 
-  const conversation = conversations.find((c) => c.id === conversationId);
-
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -81,7 +84,7 @@ export function ChatWindow({
     if (!newMessage.trim() || !user) return;
 
     try {
-      await createMessage(
+      await sendMessage(
         {
           content: newMessage,
           conversationId,
@@ -105,7 +108,7 @@ export function ChatWindow({
   }
 
   const otherParticipant = conversation.participants.find(
-    (p) => p.id !== user?.id
+    (p: User) => p.id !== user?.id
   );
 
   const displayName =
@@ -156,7 +159,7 @@ export function ChatWindow({
             <p>Aucun message</p>
           </div>
         ) : (
-          messages.map((message) => (
+          messages.map((message: Message) => (
             <div
               key={message.id}
               className={`flex ${

@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-provider";
-import { useUserConversations, useUser } from "@/graphql/hooks";
+import { useUserConversations } from "../hooks/use-api";
+import { User, Conversation } from "../graphql/types";
 import { format, isToday, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -36,12 +37,14 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { user, logout } = useAuth();
-  const { conversations, loading: loadingConversations } = useUserConversations(
+  const { data: conversationsData, loading: loadingConversations } = useUserConversations(
     user?.id || ""
   );
 
-  const filteredConversations = conversations.filter((conv) => {
-    const otherParticipant = conv.participants.find((p) => p.id !== user?.id);
+  const conversations = conversationsData?.userConversations || [];
+
+  const filteredConversations = conversations.filter((conv: Conversation) => {
+    const otherParticipant = conv.participants.find((p: User) => p.id !== user?.id);
     return (
       otherParticipant?.username
         .toLowerCase()
@@ -129,9 +132,9 @@ export function ChatSidebar({
             <p>Aucune conversation trouvée</p>
           </div>
         ) : (
-          filteredConversations.map((conversation) => {
+          filteredConversations.map((conversation: Conversation) => {
             const otherParticipant = conversation.participants.find(
-              (p) => p.id !== user?.id
+              (p: User) => p.id !== user?.id
             );
             const displayName =
               conversation.title ||

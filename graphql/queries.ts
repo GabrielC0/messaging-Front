@@ -61,13 +61,78 @@ export const GET_USER = gql`
   ${USER_FRAGMENT}
 `;
 
+export const GET_CONVERSATIONS = gql`
+  query GetConversations {
+    conversations {
+      id
+      title
+      lastActivity
+      createdAt
+      participants {
+        ...UserFragment
+      }
+    }
+  }
+  ${USER_FRAGMENT}
+`;
+
+export const GET_CONVERSATION = gql`
+  query GetConversation($id: String!) {
+    conversation(id: $id) {
+      id
+      title
+      lastActivity
+      createdAt
+      participants {
+        ...UserFragment
+      }
+      messages {
+        ...MessageFragment
+      }
+    }
+  }
+  ${USER_FRAGMENT}
+  ${MESSAGE_FRAGMENT}
+`;
+
+export const GET_MESSAGES = gql`
+  query GetMessages {
+    messages {
+      ...MessageFragment
+    }
+  }
+  ${MESSAGE_FRAGMENT}
+`;
+
+export const GET_MESSAGE = gql`
+  query GetMessage($id: String!) {
+    message(id: $id) {
+      ...MessageFragment
+    }
+  }
+  ${MESSAGE_FRAGMENT}
+`;
+
+export const HEALTH_CHECK = gql`
+  query HealthCheck {
+    healthCheck {
+      result
+    }
+  }
+`;
+
 export const GET_USER_CONVERSATIONS = gql`
   query GetUserConversations($userId: String!) {
     userConversations(userId: $userId) {
-      ...ConversationFragment
+      id
+      title
+      lastActivity
+      participants {
+        ...UserFragment
+      }
     }
   }
-  ${CONVERSATION_FRAGMENT}
+  ${USER_FRAGMENT}
 `;
 
 export const GET_CONVERSATION_MESSAGES = gql`
@@ -89,14 +154,17 @@ export const CREATE_USER = gql`
 `;
 
 export const CREATE_CONVERSATION = gql`
-  mutation CreateConversation(
-    $createConversationInput: CreateConversationInput!
-  ) {
+  mutation CreateConversation($createConversationInput: CreateConversationInput!) {
     createConversation(createConversationInput: $createConversationInput) {
-      ...ConversationFragment
+      id
+      title
+      createdAt
+      participants {
+        ...UserFragment
+      }
     }
   }
-  ${CONVERSATION_FRAGMENT}
+  ${USER_FRAGMENT}
 `;
 
 export const CREATE_MESSAGE = gql`
@@ -126,30 +194,9 @@ export const CREATE_MESSAGE = gql`
 `;
 
 export const REGISTER = gql`
-  mutation Register($createUserInput: CreateUserInput!) {
+  mutation CreateUser($createUserInput: CreateUserInput!) {
     createUser(createUserInput: $createUserInput) {
       ...UserFragment
-    }
-  }
-  ${USER_FRAGMENT}
-`;
-
-export const GET_USER_BY_EMAIL = gql`
-  query GetUserByEmail($email: String!) {
-    userByEmail(email: $email) {
-      ...UserFragment
-    }
-  }
-  ${USER_FRAGMENT}
-`;
-
-export const LOGIN_USER = gql`
-  mutation LoginUser($email: String!) {
-    loginUser(email: $email) {
-      user {
-        ...UserFragment
-      }
-      token
     }
   }
   ${USER_FRAGMENT}

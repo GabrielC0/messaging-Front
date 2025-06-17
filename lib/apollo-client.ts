@@ -12,7 +12,7 @@ import { onError } from "@apollo/client/link/error";
 import { setContext } from "@apollo/client/link/context";
 
 // Configuration dynamique basée sur l'environnement
-const TIMEOUT_MS = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "10000");
+const TIMEOUT_MS = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "15000");
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_GRAPHQL_URL ||
   "https://messaging-platform-gfnp.onrender.com/graphql";

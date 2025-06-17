@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:connectivity": "node test-connectivity.js"
+    "test:connectivity": "node test-connectivity.js",
+    "test:api": "node test-api-connectivity.js"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",

@@ -17,9 +17,9 @@ import {
   resetApolloCache,
 } from "@/lib/apollo-client";
 import { useAuth } from "@/contexts/auth-provider";
+import { ApiTestPanel } from "@/components/api-test-panel";
 
 export default function TestPage() {
-  const { backendStatus } = useAuth();
   const [testResult, setTestResult] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
@@ -64,10 +64,14 @@ export default function TestPage() {
     resetApolloCache();
     setTestResult("Cache Apollo réinitialisé");
   };
-
   return (
     <div className="container py-10">
       <h1 className="text-3xl font-bold mb-6">Test de connexion au backend</h1>
+
+      {/* Nouveau panneau de test API */}
+      <div className="mb-8">
+        <ApiTestPanel />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
@@ -76,21 +80,16 @@ export default function TestPage() {
             <CardDescription>
               Vérifiez l'état de la connexion au backend GraphQL
             </CardDescription>
-          </CardHeader>
-          <CardContent>
+          </CardHeader>          <CardContent>
             <div className="mb-4">
               <p className="mb-2">Statut actuel:</p>
               <Badge
                 variant={
-                  backendStatus === "available" ? "default" : "destructive"
+                  isBackendAvailable ? "default" : "destructive"
                 }
                 className="text-lg py-2 px-3"
               >
-                {backendStatus === "available"
-                  ? "Connecté"
-                  : backendStatus === "unavailable"
-                  ? "Déconnecté"
-                  : "Inconnu"}
+                {isBackendAvailable ? "Connecté" : "Déconnecté"}
               </Badge>
             </div>
 
