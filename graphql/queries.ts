@@ -134,6 +134,27 @@ export const REGISTER = gql`
   ${USER_FRAGMENT}
 `;
 
+export const GET_USER_BY_EMAIL = gql`
+  query GetUserByEmail($email: String!) {
+    userByEmail(email: $email) {
+      ...UserFragment
+    }
+  }
+  ${USER_FRAGMENT}
+`;
+
+export const LOGIN_USER = gql`
+  mutation LoginUser($email: String!) {
+    loginUser(email: $email) {
+      user {
+        ...UserFragment
+      }
+      token
+    }
+  }
+  ${USER_FRAGMENT}
+`;
+
 // TODO: À implémenter plus tard - Cette mutation sera activée quand le backend GraphQL
 // supportera la mise à jour du profil utilisateur
 /*
@@ -157,5 +178,21 @@ export const UPDATE_CONVERSATION = gql`
     }
   }
   ${CONVERSATION_FRAGMENT}
+`;
+*/
+
+// TODO: À implémenter plus tard - Cette mutation sera activée quand le backend GraphQL
+// supportera la mise à jour du statut de lecture des messages
+/*
+export const UPDATE_MESSAGE_READ_STATUS = gql`
+  mutation UpdateMessageReadStatus($messageIds: [String!]!, $conversationId: String!) {
+    updateMessageReadStatus(messageIds: $messageIds, conversationId: $conversationId) {
+      success
+      updatedMessages {
+        ...MessageFragment
+      }
+    }
+  }
+  ${MESSAGE_FRAGMENT}
 `;
 */

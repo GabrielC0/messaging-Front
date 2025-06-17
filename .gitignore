@@ -16,8 +16,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files - Configuration cloud sensible
 .env*
+!.env.development
+!.env.production
+# Note: .env.development et .env.production sont des templates
+# .env.local contient les vraies variables et ne doit jamais être commité
 
 # vercel
 .vercel
@@ -25,3 +29,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Logs et cache
+logs
+*.log
+.cache/
+.temp/
+
+# Configuration IDE
+.vscode/settings.json
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

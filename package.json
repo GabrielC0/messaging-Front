@@ -1,12 +1,15 @@
 {
-  "name": "my-v0-project",
+  "name": "whatsapp-clone",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:cloud": "copy .env.production .env.local && next dev",
+    "dev:staging": "copy .env.development .env.local && next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:connectivity": "node test-connectivity.js"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
@@ -55,6 +58,7 @@
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
+    "socket.io-client": "^4.8.1",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",

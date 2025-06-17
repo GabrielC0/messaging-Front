@@ -144,5 +144,46 @@ export interface CreateConversationResponse {
 }
 
 export interface CreateMessageResponse {
-  createMessage: Message;
+  createMessage: {
+    id: string;
+    content: string;
+    sender: {
+      id: string;
+      username: string;
+    };
+    conversation: {
+      id: string;
+      title: string;
+    };
+    isRead: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
 }
+
+export interface GetUserByEmailResponse {
+  userByEmail: User;
+}
+
+export interface LoginMutationResponse {
+  loginUser: {
+    user: User;
+    token: string;
+  };
+}
+
+// TODO: À implémenter plus tard - Ces interfaces seront activées quand le backend GraphQL
+// supportera la mise à jour du statut de lecture des messages
+/*
+export interface UpdateMessageReadStatusInput {
+  messageIds: string[];
+  conversationId: string;
+}
+
+export interface UpdateMessageReadStatusResponse {
+  updateMessageReadStatus: {
+    success: boolean;
+    updatedMessages: Message[];
+  };
+}
+*/

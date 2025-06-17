@@ -4,13 +4,14 @@ import { useMutation, useQuery, ApolloError } from "@apollo/client";
 import {
   GET_USERS,
   GET_USER,
+  GET_USER_BY_EMAIL,
   GET_USER_CONVERSATIONS,
   GET_CONVERSATION_MESSAGES,
   CREATE_USER,
   CREATE_CONVERSATION,
   CREATE_MESSAGE,
   LOGIN_USER,
-  UPDATE_MESSAGE_READ_STATUS,
+  // UPDATE_MESSAGE_READ_STATUS, // TODO: À implémenter plus tard
 } from "./queries";
 import {
   User,
@@ -21,6 +22,7 @@ import {
   CreateMessageInput,
   GetUsersResponse,
   GetUserResponse,
+  GetUserByEmailResponse,
   GetUserConversationsResponse,
   GetConversationMessagesResponse,
   CreateUserResponse,
