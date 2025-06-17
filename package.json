@@ -10,7 +10,11 @@
     "start": "next start",
     "lint": "next lint",
     "test:connectivity": "node test-connectivity.js",
-    "test:api": "node test-api-connectivity.js"
+    "test:api": "node test-api-connectivity.js",
+    "test:websocket": "echo Ouvrez http://localhost:3000/websocket-test.html dans votre navigateur pour tester WebSocket",
+    "validate:config": "node validate-config.js",
+    "validate:docs": "node validate-documentation.js",
+    "features": "node show-features.js"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",

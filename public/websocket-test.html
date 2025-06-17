@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test WebSocket - WhatsApp Clone</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .status {
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-weight: bold;
+      }
+      .connected {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .disconnected {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .connecting {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin: 5px 0;
+      }
+      .message {
+        background: #f8f9fa;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border-left: 4px solid #007bff;
+      }
+      .log {
+        background: #f1f1f1;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        font-family: monospace;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .timestamp {
+        color: #666;
+        font-size: 0.8em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Test WebSocket - WhatsApp Clone</h1>
+
+    <div class="container">
+      <h2>État de la Connexion</h2>
+      <div id="status" class="status disconnected">❌ Déconnecté</div>
+      <div>
+        <strong>URL:</strong>
+        <span id="url">https://messaging-platform-gfnp.onrender.com</span>
+      </div>
+      <div>
+        <strong>Socket ID:</strong> <span id="socketId">Non connecté</span>
+      </div>
+      <div>
+        <button id="connectBtn">Se connecter</button>
+        <button id="disconnectBtn" disabled>Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2>Test d'Envoi de Messages</h2>
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Tapez votre message de test..."
+        disabled
+      />
+      <button id="sendBtn" disabled>Envoyer Message Test</button>
+    </div>
+
+    <div class="container">
+      <h2>Messages Reçus</h2>
+      <div>
+        <button id="clearBtn">Effacer les messages</button>
+        <span id="messageCount">0 message(s) reçu(s)</span>
+      </div>
+      <div id="messages"></div>
+    </div>
+
+    <div class="container">
+      <h2>Logs de Connexion</h2>
+      <div id="logs" class="log"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+      let socket = null;
+      let messageCount = 0;
+
+      const statusEl = document.getElementById("status");
+      const socketIdEl = document.getElementById("socketId");
+      const connectBtn = document.getElementById("connectBtn");
+      const disconnectBtn = document.getElementById("disconnectBtn");
+      const messageInput = document.getElementById("messageInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const messagesEl = document.getElementById("messages");
+      const logsEl = document.getElementById("logs");
+      const messageCountEl = document.getElementById("messageCount");
+      const clearBtn = document.getElementById("clearBtn");
+
+      function log(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement("div");
+        logEntry.innerHTML = `<span class="timestamp">${timestamp}</span> ${message}`;
+        logsEl.appendChild(logEntry);
+        logsEl.scrollTop = logsEl.scrollHeight;
+        console.log(`[${timestamp}] ${message}`);
+      }
+
+      function updateStatus(status, className) {
+        statusEl.textContent = status;
+        statusEl.className = `status ${className}`;
+      }
+
+      function updateSocketId(id) {
+        socketIdEl.textContent = id || "Non connecté";
+      }
+
+      function addMessage(message) {
+        messageCount++;
+        const messageEl = document.createElement("div");
+        messageEl.className = "message";
+
+        const timestamp = new Date().toLocaleTimeString();
+        const sender = message.sender?.username || "Utilisateur Inconnu";
+        const content = message.content || JSON.stringify(message);
+
+        messageEl.innerHTML = `
+                <div><strong>${sender}</strong> <span class="timestamp">${timestamp}</span></div>
+                <div>${content}</div>
+                ${
+                  message.conversation?.id
+                    ? `<div><small>Conversation: ${message.conversation.id}</small></div>`
+                    : ""
+                }
+            `;
+
+        messagesEl.appendChild(messageEl);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        messageCountEl.textContent = `${messageCount} message(s) reçu(s)`;
+      }
+
+      function connect() {
+        if (socket) {
+          socket.disconnect();
+        }
+
+        const url = "https://messaging-platform-gfnp.onrender.com";
+        log(`🔌 Tentative de connexion à ${url}...`);
+        updateStatus("🔄 Connexion...", "connecting");
+
+        socket = io(url, {
+          withCredentials: false,
+          transports: ["websocket", "polling"],
+          timeout: 20000,
+          autoConnect: false,
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+        });
+
+        socket.on("connect", () => {
+          log(`✅ Connecté avec succès! Socket ID: ${socket.id}`);
+          updateStatus("✅ Connecté", "connected");
+          updateSocketId(socket.id);
+          connectBtn.disabled = true;
+          disconnectBtn.disabled = false;
+          messageInput.disabled = false;
+          sendBtn.disabled = false;
+        });
+
+        socket.on("disconnect", (reason) => {
+          log(`❌ Déconnecté: ${reason}`);
+          updateStatus("❌ Déconnecté", "disconnected");
+          updateSocketId(null);
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+          messageInput.disabled = true;
+          sendBtn.disabled = true;
+        });
+
+        socket.on("connect_error", (error) => {
+          log(`❌ Erreur de connexion: ${error.message}`);
+          updateStatus("❌ Erreur de connexion", "disconnected");
+        });
+
+        socket.on("newMessage", (message) => {
+          log(
+            `📨 Nouveau message reçu de ${
+              message.sender?.username || "Inconnu"
+            }`
+          );
+          addMessage(message);
+        });
+
+        socket.on("reconnect", (attemptNumber) => {
+          log(`🔄 Reconnecté après ${attemptNumber} tentative(s)`);
+        });
+
+        socket.on("reconnect_attempt", (attemptNumber) => {
+          log(`🔄 Tentative de reconnexion #${attemptNumber}`);
+        });
+
+        socket.on("reconnect_error", (error) => {
+          log(`❌ Erreur de reconnexion: ${error.message}`);
+        });
+
+        socket.on("reconnect_failed", () => {
+          log(`❌ Échec de reconnexion après toutes les tentatives`);
+        });
+
+        // Événements personnalisés pour les tests
+        socket.on("testMessage", (data) => {
+          log(`🧪 Message de test reçu: ${JSON.stringify(data)}`);
+          addMessage({
+            sender: { username: "Test" },
+            content: data.content || JSON.stringify(data),
+            conversation: { id: "test" },
+          });
+        });
+
+        socket.connect();
+      }
+
+      function disconnect() {
+        if (socket) {
+          log("🔌 Déconnexion manuelle...");
+          socket.disconnect();
+          socket = null;
+        }
+      }
+
+      function sendTestMessage() {
+        const message = messageInput.value.trim();
+        if (message && socket && socket.connected) {
+          const testData = {
+            content: message,
+            timestamp: new Date().toISOString(),
+            type: "test",
+          };
+
+          log(`📤 Envoi du message de test: ${message}`);
+          socket.emit("testMessage", testData);
+          messageInput.value = "";
+        }
+      }
+
+      function clearMessages() {
+        messagesEl.innerHTML = "";
+        messageCount = 0;
+        messageCountEl.textContent = "0 message(s) reçu(s)";
+        log("🗑️ Messages effacés");
+      }
+
+      // Event listeners
+      connectBtn.addEventListener("click", connect);
+      disconnectBtn.addEventListener("click", disconnect);
+      sendBtn.addEventListener("click", sendTestMessage);
+      clearBtn.addEventListener("click", clearMessages);
+
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendTestMessage();
+        }
+      });
+
+      // Auto-connect au chargement
+      log("🚀 Page chargée, prêt pour les tests WebSocket");
+
+      // Instructions
+      setTimeout(() => {
+        log('💡 Cliquez sur "Se connecter" pour commencer les tests');
+        log("💡 Ouvrez les outils de développement pour voir plus de logs");
+      }, 1000);
+    </script>
+  </body>
+</html>

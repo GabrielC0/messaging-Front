@@ -36,7 +36,8 @@ export const useSocket = () => {
             autoConnect: true,
             reconnection: true,
             reconnectionAttempts: 5,
-            reconnectionDelay: 1000,          }) as any;
+            reconnectionDelay: 1000,
+          }) as any;
 
           if (socket) {
             socket.on("connect", () => {

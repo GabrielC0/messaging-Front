@@ -54,7 +54,7 @@ export function ChatWindow({
     loading: loadingMessages,
     refetch: refetchMessages,
   } = useConversationMessages(conversationId);
-  
+
   const { data: conversationData } = useConversation(conversationId);
   const { sendMessage } = useMessaging();
 

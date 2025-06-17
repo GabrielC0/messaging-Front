@@ -18,6 +18,7 @@ import {
 } from "@/lib/apollo-client";
 import { useAuth } from "@/contexts/auth-provider";
 import { ApiTestPanel } from "@/components/api-test-panel";
+import { WebSocketTestPanel } from "@/components/websocket-test-panel";
 
 export default function TestPage() {
   const [testResult, setTestResult] = useState<string | null>(null);
@@ -73,6 +74,12 @@ export default function TestPage() {
         <ApiTestPanel />
       </div>
 
+      {/* Nouveau panneau de test WebSocket */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Tests WebSocket Avancés</h2>
+        <WebSocketTestPanel />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -80,13 +87,12 @@ export default function TestPage() {
             <CardDescription>
               Vérifiez l'état de la connexion au backend GraphQL
             </CardDescription>
-          </CardHeader>          <CardContent>
+          </CardHeader>{" "}
+          <CardContent>
             <div className="mb-4">
               <p className="mb-2">Statut actuel:</p>
               <Badge
-                variant={
-                  isBackendAvailable ? "default" : "destructive"
-                }
+                variant={isBackendAvailable ? "default" : "destructive"}
                 className="text-lg py-2 px-3"
               >
                 {isBackendAvailable ? "Connecté" : "Déconnecté"}

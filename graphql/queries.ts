@@ -154,7 +154,9 @@ export const CREATE_USER = gql`
 `;
 
 export const CREATE_CONVERSATION = gql`
-  mutation CreateConversation($createConversationInput: CreateConversationInput!) {
+  mutation CreateConversation(
+    $createConversationInput: CreateConversationInput!
+  ) {
     createConversation(createConversationInput: $createConversationInput) {
       id
       title

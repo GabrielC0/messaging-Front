@@ -37,14 +37,15 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { user, logout } = useAuth();
-  const { data: conversationsData, loading: loadingConversations } = useUserConversations(
-    user?.id || ""
-  );
+  const { data: conversationsData, loading: loadingConversations } =
+    useUserConversations(user?.id || "");
 
   const conversations = conversationsData?.userConversations || [];
 
   const filteredConversations = conversations.filter((conv: Conversation) => {
-    const otherParticipant = conv.participants.find((p: User) => p.id !== user?.id);
+    const otherParticipant = conv.participants.find(
+      (p: User) => p.id !== user?.id
+    );
     return (
       otherParticipant?.username
         .toLowerCase()

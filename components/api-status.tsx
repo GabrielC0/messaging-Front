@@ -1,8 +1,8 @@
 "use client";
 
-import { useHealthCheck } from '../hooks/use-api';
-import { Badge } from './ui/badge';
-import { Server, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useHealthCheck } from "../hooks/use-api";
+import { Badge } from "./ui/badge";
+import { Server, AlertTriangle, CheckCircle } from "lucide-react";
 
 export function ApiStatus() {
   const { data, loading, error } = useHealthCheck();
@@ -13,7 +13,7 @@ export function ApiStatus() {
         variant: "secondary" as const,
         icon: <Server className="h-3 w-3 animate-pulse" />,
         text: "Connexion...",
-        subtext: "L'API peut prendre du temps à se réveiller"
+        subtext: "L'API peut prendre du temps à se réveiller",
       };
     }
 
@@ -22,16 +22,16 @@ export function ApiStatus() {
         variant: "destructive" as const,
         icon: <AlertTriangle className="h-3 w-3" />,
         text: "API Hors ligne",
-        subtext: "Vérifiez votre connexion internet"
+        subtext: "Vérifiez votre connexion internet",
       };
     }
 
-    if (data?.healthCheck?.result === 'OK') {
+    if (data?.healthCheck?.result === "OK") {
       return {
         variant: "default" as const,
         icon: <CheckCircle className="h-3 w-3" />,
         text: "API En ligne",
-        subtext: "Base de données connectée"
+        subtext: "Base de données connectée",
       };
     }
 
@@ -39,7 +39,7 @@ export function ApiStatus() {
       variant: "destructive" as const,
       icon: <AlertTriangle className="h-3 w-3" />,
       text: "Statut inconnu",
-      subtext: "Réponse inattendue"
+      subtext: "Réponse inattendue",
     };
   };
 
@@ -47,7 +47,7 @@ export function ApiStatus() {
 
   return (
     <div className="flex items-center gap-2">
-      <Badge 
+      <Badge
         variant={status.variant}
         className={`flex items-center gap-1 ${
           status.variant === "default" ? "bg-green-500" : ""
@@ -56,9 +56,7 @@ export function ApiStatus() {
         {status.icon}
         {status.text}
       </Badge>
-      <span className="text-xs text-muted-foreground">
-        {status.subtext}
-      </span>
+      <span className="text-xs text-muted-foreground">{status.subtext}</span>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery, useMutation, useApolloClient } from '@apollo/client';
-import { useSocket } from './use-socket';
+import { useQuery, useMutation, useApolloClient } from "@apollo/client";
+import { useSocket } from "./use-socket";
 import {
   GET_USERS,
   GET_USER,
@@ -15,7 +15,7 @@ import {
   CREATE_USER,
   CREATE_CONVERSATION,
   CREATE_MESSAGE,
-} from '../graphql/queries';
+} from "../graphql/queries";
 import {
   GetUsersResponse,
   GetUserResponse,
@@ -32,12 +32,12 @@ import {
   User,
   Conversation,
   Message,
-} from '../graphql/types';
+} from "../graphql/types";
 
 // Hook pour récupérer tous les utilisateurs
 export const useUsers = () => {
   return useQuery<GetUsersResponse>(GET_USERS, {
-    errorPolicy: 'all',
+    errorPolicy: "all",
     notifyOnNetworkStatusChange: true,
   });
 };
@@ -47,14 +47,14 @@ export const useUser = (id: string) => {
   return useQuery<GetUserResponse>(GET_USER, {
     variables: { id },
     skip: !id,
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 };
 
 // Hook pour récupérer toutes les conversations
 export const useConversations = () => {
   return useQuery<GetConversationsResponse>(GET_CONVERSATIONS, {
-    errorPolicy: 'all',
+    errorPolicy: "all",
     notifyOnNetworkStatusChange: true,
   });
 };
@@ -64,7 +64,7 @@ export const useConversation = (id: string) => {
   return useQuery<GetConversationResponse>(GET_CONVERSATION, {
     variables: { id },
     skip: !id,
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 };
 
@@ -73,14 +73,14 @@ export const useUserConversations = (userId: string) => {
   return useQuery<GetUserConversationsResponse>(GET_USER_CONVERSATIONS, {
     variables: { userId },
     skip: !userId,
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 };
 
 // Hook pour récupérer tous les messages
 export const useMessages = () => {
   return useQuery<GetMessagesResponse>(GET_MESSAGES, {
-    errorPolicy: 'all',
+    errorPolicy: "all",
     notifyOnNetworkStatusChange: true,
   });
 };
@@ -90,7 +90,7 @@ export const useMessage = (id: string) => {
   return useQuery<GetMessageResponse>(GET_MESSAGE, {
     variables: { id },
     skip: !id,
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 };
 
@@ -99,7 +99,7 @@ export const useConversationMessages = (conversationId: string) => {
   return useQuery<GetConversationMessagesResponse>(GET_CONVERSATION_MESSAGES, {
     variables: { conversationId },
     skip: !conversationId,
-    errorPolicy: 'all',
+    errorPolicy: "all",
     pollInterval: 5000, // Refresh toutes les 5 secondes
   });
 };
@@ -107,15 +107,17 @@ export const useConversationMessages = (conversationId: string) => {
 // Hook pour le health check
 export const useHealthCheck = () => {
   return useQuery<HealthCheckResponse>(HEALTH_CHECK, {
-    errorPolicy: 'all',
+    errorPolicy: "all",
     pollInterval: 30000, // Check toutes les 30 secondes
+    notifyOnNetworkStatusChange: true,
+    fetchPolicy: "cache-and-network", // Toujours essayer de refetch
   });
 };
 
 // Hook pour créer un utilisateur
 export const useCreateUser = () => {
   const client = useApolloClient();
-  
+
   return useMutation(CREATE_USER, {
     onCompleted: () => {
       // Refresh la liste des utilisateurs
@@ -123,14 +125,14 @@ export const useCreateUser = () => {
         include: [GET_USERS],
       });
     },
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 };
 
 // Hook pour créer une conversation
 export const useCreateConversation = () => {
   const client = useApolloClient();
-  
+
   return useMutation(CREATE_CONVERSATION, {
     onCompleted: () => {
       // Refresh la liste des conversations
@@ -138,14 +140,14 @@ export const useCreateConversation = () => {
         include: [GET_CONVERSATIONS],
       });
     },
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 };
 
 // Hook pour créer un message
 export const useCreateMessage = () => {
   const client = useApolloClient();
-    return useMutation(CREATE_MESSAGE, {
+  return useMutation(CREATE_MESSAGE, {
     onCompleted: (data) => {
       // Refresh les messages de la conversation
       if (data?.createMessage?.conversation?.id) {
@@ -154,7 +156,7 @@ export const useCreateMessage = () => {
         });
       }
     },
-    errorPolicy: 'all',
+    errorPolicy: "all",
   });
 };
 
@@ -187,7 +189,7 @@ export const useMessaging = () => {
           });
         }
       } catch (error) {
-        console.error('Erreur lors de la mise à jour du cache:', error);
+        console.error("Erreur lors de la mise à jour du cache:", error);
       }
     }
   };
@@ -201,10 +203,10 @@ export const useMessaging = () => {
           senderId,
         },
       });
-      
+
       return result.data?.createMessage;
     } catch (error) {
-      console.error('Erreur lors de l\'envoi du message:', error);
+      console.error("Erreur lors de l'envoi du message:", error);
       throw error;
     }
   };
@@ -226,10 +228,10 @@ export const useUserOperations = () => {
       const result = await createUser({
         variables: { createUserInput: input },
       });
-      
+
       return result.data?.createUser;
     } catch (error) {
-      console.error('Erreur lors de la création de l\'utilisateur:', error);
+      console.error("Erreur lors de la création de l'utilisateur:", error);
       throw error;
     }
   };
@@ -248,10 +250,10 @@ export const useConversationOperations = () => {
       const result = await createConversation({
         variables: { createConversationInput: input },
       });
-      
+
       return result.data?.createConversation;
     } catch (error) {
-      console.error('Erreur lors de la création de la conversation:', error);
+      console.error("Erreur lors de la création de la conversation:", error);
       throw error;
     }
   };
