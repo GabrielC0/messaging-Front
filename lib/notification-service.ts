@@ -152,12 +152,14 @@ class NotificationService {
       checks.isNotQuietTime &&
       (forceShow || checks.isPageHidden);
 
-    console.log("🔍 Vérification notification:", {
-      checks,
-      forceShow,
-      result,
-      timestamp: new Date().toISOString(),
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.log("🔍 Vérification notification:", {
+        checks,
+        forceShow,
+        result,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     return result;
   }

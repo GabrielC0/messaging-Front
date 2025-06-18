@@ -52,6 +52,15 @@ export const useGlobalNotifications = () => {
       permission !== "granted" ||
       !user?.id
     ) {
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 Notification bloquée:", {
+          isInitialized,
+          isReady,
+          hasLastMessage: !!lastMessage,
+          permission,
+          hasUser: !!user?.id,
+        });
+      }
       return;
     }
 
@@ -60,11 +69,13 @@ export const useGlobalNotifications = () => {
       lastMessage.receivedAt || Date.now()
     }`;
     if (processedMessages.has(messageKey)) {
+      console.log("🔍 Message déjà traité:", messageKey);
       return;
     }
 
     // Vérifier que ce n'est pas un message de l'utilisateur actuel
     if (lastMessage.sender?.id === user.id) {
+      console.log("🔍 Message de l'utilisateur actuel, pas de notification");
       return;
     } // Support pour les deux structures possibles du message
     const messageConversationId =
@@ -73,8 +84,19 @@ export const useGlobalNotifications = () => {
     // Ne notifier que si ce n'est pas la conversation active
     const shouldNotify = messageConversationId !== currentConversationId;
 
+    console.log("🔍 Décision notification:", {
+      messageConversationId,
+      currentConversationId,
+      shouldNotify,
+      sender: lastMessage.sender?.username,
+    });
+
     if (shouldNotify) {
       try {
+        console.log(
+          "🔔 Envoi notification pour:",
+          lastMessage.sender?.username
+        );
         showMessageNotification(lastMessage, {
           conversationName:
             lastMessage.conversation?.title ||
@@ -89,6 +111,7 @@ export const useGlobalNotifications = () => {
         console.error("❌ Erreur notification:", error);
       }
     } else {
+      console.log("🔍 Pas de notification (conversation active)");
       // Marquer quand même comme traité pour éviter les futures tentatives
       setProcessedMessages((prev) => new Set([...prev, messageKey]));
     }
