@@ -37,10 +37,22 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { user, logout } = useAuth();
-  const { data: conversationsData, loading: loadingConversations } =
-    useUserConversations(user?.id || "");
+  const {
+    data: conversationsData,
+    loading: loadingConversations,
+    error,
+  } = useUserConversations(user?.id || "");
 
   const conversations = conversationsData?.userConversations || [];
+
+  // Debug: Afficher les données reçues
+  useEffect(() => {
+    console.log("Sidebar - Conversations data:", conversationsData);
+    console.log("Sidebar - User ID:", user?.id);
+    console.log("Sidebar - Loading:", loadingConversations);
+    console.log("Sidebar - Error:", error);
+    console.log("Sidebar - Conversations array:", conversations);
+  }, [conversationsData, user?.id, loadingConversations, error, conversations]);
 
   const filteredConversations = conversations.filter((conv: Conversation) => {
     const otherParticipant = conv.participants.find(
@@ -130,7 +142,16 @@ export function ChatSidebar({
         ) : filteredConversations.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             <MessageCircle className="h-12 w-12 mb-2 mx-auto text-gray-400" />
-            <p>Aucune conversation trouvée</p>
+            <p>
+              {searchQuery
+                ? "Aucune conversation trouvée pour cette recherche"
+                : "Aucune conversation"}
+            </p>
+            {!searchQuery && (
+              <p className="text-xs mt-1 text-gray-400">
+                Commencez une nouvelle conversation
+              </p>
+            )}
           </div>
         ) : (
           filteredConversations.map((conversation: Conversation) => {
@@ -176,20 +197,32 @@ export function ChatSidebar({
                   <div className="flex flex-col gap-0.5">
                     <p className="text-xs text-gray-500 truncate max-w-[200px]">
                       {conversation.messages && conversation.messages.length > 0
-                        ? conversation.messages[
-                            conversation.messages.length - 1
-                          ].content
+                        ? (() => {
+                            const lastMessage =
+                              conversation.messages[
+                                conversation.messages.length - 1
+                              ];
+                            const isFromCurrentUser =
+                              lastMessage.sender.id === user?.id;
+                            const prefix = isFromCurrentUser ? "Vous: " : "";
+                            return `${prefix}${lastMessage.content}`;
+                          })()
                         : "Aucun message"}
                     </p>
                     <div className="flex gap-2 text-[10px] text-gray-400">
                       <span>
                         Créée le {formatDetailedDate(conversation.createdAt)}
                       </span>
-                      <span>•</span>
-                      <span>
-                        Mise à jour le{" "}
-                        {formatDetailedDate(conversation.updatedAt)}
-                      </span>
+                      {conversation.messages &&
+                        conversation.messages.length > 0 && (
+                          <>
+                            <span>•</span>
+                            <span>
+                              Dernière activité le{" "}
+                              {formatDetailedDate(conversation.lastActivity)}
+                            </span>
+                          </>
+                        )}
                     </div>
                   </div>
                 </div>

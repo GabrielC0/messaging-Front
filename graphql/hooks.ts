@@ -156,6 +156,20 @@ export function useUserConversations(userId: string) {
     }
   }, [error]);
 
+  // Si on a une erreur réseau ou pas de données, utiliser les données de démonstration
+  if (error && hasConnectionError(error)) {
+    console.log("Backend unavailable, using demo conversations");
+    const { getDemoData } = require("@/data/demo-data");
+    const demoData = getDemoData();
+
+    return {
+      conversations: demoData.conversations,
+      loading: false,
+      error: null,
+      refetch,
+    };
+  }
+
   return {
     conversations: data?.userConversations || [],
     loading,

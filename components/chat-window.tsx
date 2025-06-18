@@ -156,7 +156,10 @@ export function ChatWindow({
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <MessageSquare className="h-12 w-12 mb-2" />
-            <p>Aucun message</p>
+            <p>Aucun message dans cette conversation</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Commencez par dire bonjour !
+            </p>
           </div>
         ) : (
           messages.map((message: Message) => (

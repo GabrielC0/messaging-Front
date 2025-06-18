@@ -127,12 +127,18 @@ export const GET_USER_CONVERSATIONS = gql`
       id
       title
       lastActivity
+      createdAt
+      updatedAt
       participants {
         ...UserFragment
+      }
+      messages {
+        ...MessageFragment
       }
     }
   }
   ${USER_FRAGMENT}
+  ${MESSAGE_FRAGMENT}
 `;
 
 export const GET_CONVERSATION_MESSAGES = gql`
@@ -199,6 +205,27 @@ export const REGISTER = gql`
   mutation CreateUser($createUserInput: CreateUserInput!) {
     createUser(createUserInput: $createUserInput) {
       ...UserFragment
+    }
+  }
+  ${USER_FRAGMENT}
+`;
+
+export const GET_USER_BY_EMAIL = gql`
+  query GetUserByEmail($email: String!) {
+    userByEmail(email: $email) {
+      ...UserFragment
+    }
+  }
+  ${USER_FRAGMENT}
+`;
+
+export const LOGIN_USER = gql`
+  mutation LoginUser($email: String!, $password: String!) {
+    loginUser(email: $email, password: $password) {
+      user {
+        ...UserFragment
+      }
+      token
     }
   }
   ${USER_FRAGMENT}

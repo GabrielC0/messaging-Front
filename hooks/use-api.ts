@@ -74,6 +74,30 @@ export const useUserConversations = (userId: string) => {
     variables: { userId },
     skip: !userId,
     errorPolicy: "all",
+    fetchPolicy: "cache-and-network", // Essaie de récupérer des données fraîches
+    onCompleted: (data) => {
+      console.log("UserConversations data received:", data);
+      if (data?.userConversations) {
+        console.log("Number of conversations:", data.userConversations.length);
+        data.userConversations.forEach((conv, index) => {
+          console.log(`Conversation ${index}:`, {
+            id: conv.id,
+            title: conv.title,
+            messagesCount: conv.messages?.length || 0,
+            lastMessage:
+              conv.messages?.length > 0
+                ? conv.messages[conv.messages.length - 1].content
+                : "No messages",
+          });
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("Error fetching user conversations:", error);
+      console.log(
+        "Backend seems unavailable, user will see empty conversations list"
+      );
+    },
   });
 };
 

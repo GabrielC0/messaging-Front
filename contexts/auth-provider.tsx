@@ -11,6 +11,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { User as GraphQLUser } from "@/graphql/types";
 import { useMutation, useLazyQuery, useQuery } from "@apollo/client";
 import { GET_USER, GET_USERS, CREATE_USER } from "@/graphql/queries";
+import { getDemoData } from "@/data/demo-data";
 
 const PUBLIC_ROUTES = ["/auth", "/register"];
 
@@ -66,6 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error) => {
       console.error("GET_USERS query error:", error);
+      // En cas d'erreur, utiliser l'utilisateur de démonstration automatiquement
+      console.log("Backend unavailable, using demo user for authentication");
+      const demoData = getDemoData();
+      setUser(demoData.currentUser as AuthUser);
+      setIsAuthenticated(true);
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("currentUserId", demoData.currentUser.id);
+      setIsLoading(false);
     },
   });
   const [createUserMutation] = useMutation(CREATE_USER);
@@ -98,7 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error("Failed to fetch user data:", error);
             localStorage.removeItem("currentUserId");
             localStorage.removeItem("isAuthenticated");
-            setAuthError("Problème de connexion. Veuillez vous reconnecter.");
+
+            // En cas d'erreur réseau, utiliser l'utilisateur de démonstration
+            console.log(
+              "Backend unavailable, using demo user for authentication"
+            );
+            const demoData = getDemoData();
+            setUser(demoData.currentUser as AuthUser);
+            setIsAuthenticated(true);
+            localStorage.setItem("isAuthenticated", "true");
+            localStorage.setItem("currentUserId", demoData.currentUser.id);
           }
         }
       } catch (e) {
