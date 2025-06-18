@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-// Type simple pour éviter les erreurs TypeScript en attendant l'installation de socket.io-client
 interface SocketIO {
   connect(): void;
   disconnect(): void;
@@ -21,15 +20,10 @@ export const useSocket = () => {
   const [lastMessage, setLastMessage] = useState<any>(null);
 
   useEffect(() => {
-    // Cette fonction sera activée après l'installation de socket.io-client
     const initSocket = async () => {
       try {
-        // Dynamically import socket.io-client
         const { io } = await import("socket.io-client");
-
         if (!socket) {
-          console.log("🔌 Connecting to WebSocket:", WEBSOCKET_URL);
-
           socket = io(WEBSOCKET_URL, {
             withCredentials: true,
             transports: ["websocket", "polling"],
@@ -41,22 +35,19 @@ export const useSocket = () => {
 
           if (socket) {
             socket.on("connect", () => {
-              console.log("✅ WebSocket connected");
               setIsConnected(true);
             });
 
             socket.on("disconnect", () => {
-              console.log("❌ WebSocket disconnected");
               setIsConnected(false);
             });
 
             socket.on("newMessage", (message: any) => {
-              console.log("📨 New message received:", message);
               setLastMessage(message);
             });
 
             socket.on("connect_error", (error: any) => {
-              console.error("🚨 WebSocket connection error:", error);
+              console.error("WebSocket connection error:", error);
               setIsConnected(false);
             });
           }
@@ -78,26 +69,22 @@ export const useSocket = () => {
       }
     };
   }, []);
-
   const sendMessage = (messageData: any) => {
     if (socket && isConnected) {
-      console.log("📤 Sending message:", messageData);
       socket.emit("sendMessage", messageData);
     } else {
-      console.warn("⚠️ Cannot send message: WebSocket not connected");
+      console.warn("Cannot send message: WebSocket not connected");
     }
   };
 
   const joinConversation = (conversationId: string) => {
     if (socket && isConnected) {
-      console.log("🏠 Joining conversation:", conversationId);
       socket.emit("joinConversation", { conversationId });
     }
   };
 
   const leaveConversation = (conversationId: string) => {
     if (socket && isConnected) {
-      console.log("🚪 Leaving conversation:", conversationId);
       socket.emit("leaveConversation", { conversationId });
     }
   };

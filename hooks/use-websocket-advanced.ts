@@ -46,28 +46,22 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
       return;
     }
 
-    console.log("🔌 Connecting to WebSocket:", WEBSOCKET_URL);
-
     socketRef.current = io(WEBSOCKET_URL, {
-      withCredentials: false, // Pour les CORS avec Render.com
+      withCredentials: false,
       transports: ["websocket", "polling"],
       autoConnect: false,
-      reconnection: false, // Gestion manuelle de la reconnexion
+      reconnection: false,
       timeout: 20000,
       forceNew: true,
     });
 
     const socket = socketRef.current;
 
-    // Exposer le socket globalement pour le débogage
     if (typeof window !== "undefined") {
       (window as any).socket = socket;
-      console.log("🔍 Socket exposé globalement: window.socket");
     }
 
-    // Événement : Connexion réussie
     socket.on("connect", () => {
-      console.log("✅ WebSocket connecté:", socket.id);
       reconnectAttemptsRef.current = 0;
       setState((prev) => ({
         ...prev,
@@ -77,25 +71,18 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
       }));
     });
 
-    // Événement : Déconnexion
     socket.on("disconnect", (reason) => {
-      console.log("❌ WebSocket déconnecté:", reason);
       setState((prev) => ({
         ...prev,
         isConnected: false,
       }));
 
-      // Tentative de reconnexion automatique si nécessaire
       if (reason === "io server disconnect" || reason === "transport close") {
         handleReconnect();
       }
     });
 
-    // Événement : Nouveau message
     socket.on("newMessage", (message: Message) => {
-      console.log("📨 Nouveau message reçu:", message);
-
-      // Filtrer par conversation si spécifié
       if (!conversationId || message.conversation?.id === conversationId) {
         setState((prev) => ({
           ...prev,
@@ -104,9 +91,8 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
       }
     });
 
-    // Événement : Erreur de connexion
     socket.on("connect_error", (error) => {
-      console.error("❌ Erreur de connexion WebSocket:", error);
+      console.error("WebSocket connection error:", error);
       setState((prev) => ({
         ...prev,
         connectionError: error.message || "Erreur de connexion",
@@ -116,7 +102,6 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
       handleReconnect();
     });
 
-    // Connexion immédiate
     socket.connect();
   }, [WEBSOCKET_URL, conversationId]);
 
@@ -125,9 +110,7 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-
     if (socketRef.current) {
-      console.log("🔌 Déconnexion WebSocket manuelle");
       socketRef.current.disconnect();
       socketRef.current = null;
     }
@@ -154,10 +137,6 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
     reconnectAttemptsRef.current++;
     const delay = reconnectInterval * reconnectAttemptsRef.current;
 
-    console.log(
-      `🔄 Tentative de reconnexion ${reconnectAttemptsRef.current}/${maxReconnectAttempts} dans ${delay}ms`
-    );
-
     setState((prev) => ({
       ...prev,
       reconnectAttempts: reconnectAttemptsRef.current,
@@ -177,16 +156,14 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
     setTimeout(connect, 1000);
   }, [connect, disconnect]);
 
-  // Émission d'événements personnalisés (si nécessaire)
   const emit = useCallback((event: string, data: any) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit(event, data);
     } else {
-      console.warn("⚠️ Impossible d'émettre, WebSocket non connecté");
+      console.warn("Cannot emit: WebSocket not connected");
     }
   }, []);
 
-  // Hook de connexion automatique
   useEffect(() => {
     if (autoConnect) {
       connect();
@@ -197,7 +174,6 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
     };
   }, [autoConnect, connect, disconnect]);
 
-  // Nettoyage des timeouts
   useEffect(() => {
     return () => {
       if (reconnectTimeoutRef.current) {
@@ -207,25 +183,19 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
   }, []);
 
   return {
-    // État
     isConnected: state.isConnected,
     lastMessage: state.lastMessage,
     connectionError: state.connectionError,
     reconnectAttempts: state.reconnectAttempts,
-
-    // Actions
     connect,
     disconnect,
     forceReconnect,
     emit,
-
-    // Informations
     socketId: socketRef.current?.id,
     isReconnecting: state.reconnectAttempts > 0,
   };
 };
 
-// Hook simplifié pour compatibilité avec l'existant
 export const useSocket = () => {
   const { isConnected, lastMessage } = useWebSocketAdvanced();
   return { isConnected, lastMessage };

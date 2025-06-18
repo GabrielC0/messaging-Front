@@ -1,6 +1,5 @@
 import { Conversation, Message, User } from "../graphql/types";
 
-// Données de démonstration pour quand le backend ne fonctionne pas
 export const demoUsers: User[] = [
   {
     id: "demo-user-1",

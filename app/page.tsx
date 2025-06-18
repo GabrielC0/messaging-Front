@@ -111,23 +111,22 @@ export default function ChatApp() {
             onBack={handleBackToList}
             showBackButton={isMobile}
           />
-        ) : (          <div className="flex-1 flex items-center justify-center bg-gray-50">
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center">
-              <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />{" "}
               <h3 className="text-xl font-medium text-gray-900 mb-1">
-                WhatsApp Clone
+                LAMG-Messages
               </h3>
               <p className="text-gray-500 mb-4">
                 Sélectionnez une conversation pour commencer à discuter
               </p>
-              
-              {/* Panneau d'informations système */}
               <div className="mt-6">
                 <SystemInfoPanel />
               </div>
-              
               <div className="mt-4 text-xs text-gray-400">
-                🌐 Connecté à l'infrastructure cloud (Render.com + PostgreSQL + Redis)
+                🌐 Connecté à l'infrastructure cloud (Render.com + PostgreSQL +
+                Redis)
               </div>
             </div>
           </div>

@@ -22,7 +22,6 @@ class NotificationService {
     this.settings = this.loadSettings();
   }
 
-  // Charger les préférences utilisateur
   loadSettings(): NotificationSettings {
     if (typeof window === "undefined") {
       return this.getDefaultSettings();
@@ -51,7 +50,6 @@ class NotificationService {
     };
   }
 
-  // Sauvegarder les préférences
   saveSettings(newSettings: Partial<NotificationSettings>) {
     this.settings = { ...this.settings, ...newSettings };
 
@@ -67,7 +65,6 @@ class NotificationService {
     }
   }
 
-  // Vérifier si on est en heures silencieuses
   isQuietTime(): boolean {
     if (!this.settings.quietHours.enabled) return false;
 
@@ -90,12 +87,10 @@ class NotificationService {
       return currentTime >= startTime || currentTime <= endTime;
     }
   }
-  // Afficher une notification de message
   async showMessageNotification(message: any, options: any = {}) {
     const forceShow = options.forceShow || false;
 
     if (!this.canShowNotification(forceShow)) {
-      console.log("🔕 Notification bloquée par les paramètres utilisateur");
       return;
     }
 
@@ -115,37 +110,28 @@ class NotificationService {
     };
 
     try {
-      console.log(
-        "🔔 Affichage notification:",
-        message.sender?.username || "Utilisateur"
-      );
-
       const notification = new Notification(
         `💬 ${message.sender?.username || "Nouveau message"}`,
         notificationOptions
       );
 
-      // Gestion des clics
       notification.onclick = () => {
-        console.log("👆 Clic sur notification");
         this.handleNotificationClick(message);
         notification.close();
       };
 
-      // Auto-fermeture après 5 secondes
       setTimeout(() => {
         notification.close();
       }, 5000);
 
-      // Son personnalisé si activé
       if (this.settings.sound) {
         this.playNotificationSound();
       }
     } catch (error) {
-      console.error("❌ Erreur affichage notification:", error);
+      console.error("Erreur affichage notification:", error);
     }
   }
-  // Vérifier si on peut afficher une notification
+
   canShowNotification(forceShow = false): boolean {
     const checks = {
       isSupported: this.isSupported,
@@ -158,48 +144,21 @@ class NotificationService {
           ? document.visibilityState === "hidden"
           : true,
     };
-    console.log("🔍 Vérification notifications:", checks);
 
-    // Si forceShow est vrai (pour les tests), ignorer la condition de visibilité
-    const canShow =
+    return (
       checks.isSupported &&
       checks.hasPermission &&
       checks.isEnabled &&
       checks.isDesktopEnabled &&
       checks.isNotQuietTime &&
-      (forceShow || checks.isPageHidden);
-
-    // Log spécifique pour permission 'default'
-    if (
-      checks.isSupported &&
-      !checks.hasPermission &&
-      this.permission === "default"
-    ) {
-      console.warn(
-        '⚠️ Permission notifications = "default" - L\'utilisateur doit autoriser les notifications'
-      );
-      console.log(
-        '💡 Action requise: Cliquer sur "Autoriser" dans la popup du navigateur'
-      );
-    }
-
-    console.log(
-      "✅ Peut afficher notification:",
-      canShow,
-      forceShow ? "(forcé)" : ""
+      (forceShow || checks.isPageHidden)
     );
-    return canShow;
   }
 
-  // Gérer le clic sur notification
   handleNotificationClick(message: any) {
-    console.log("🔗 Gestion clic notification");
-
-    // Amener la fenêtre au premier plan
     if (typeof window !== "undefined") {
       window.focus();
 
-      // Émettre un événement personnalisé
       window.dispatchEvent(
         new CustomEvent("notificationClick", {
           detail: { message },
@@ -208,7 +167,6 @@ class NotificationService {
     }
   }
 
-  // Jouer un son de notification
   playNotificationSound() {
     if (typeof window === "undefined") return;
 
@@ -216,33 +174,27 @@ class NotificationService {
       const audio = new Audio("/notification-sound.mp3");
       audio.volume = 0.3;
       audio.play().catch(() => {
-        console.warn("⚠️ Impossible de jouer le son de notification");
+        console.warn("Cannot play notification sound");
       });
     } catch (error) {
-      console.warn("⚠️ Erreur son notification:", error);
+      console.warn("Notification sound error:", error);
     }
   }
-
-  // Demander la permission
   async requestPermission(): Promise<NotificationPermission> {
     if (!this.isSupported) {
-      console.warn("❌ Notifications non supportées");
+      console.warn("Notifications non supportées");
       return "denied";
     }
 
     try {
-      console.log("🔐 Demande permission notifications...");
       this.permission = await Notification.requestPermission();
-      console.log("🔐 Permission accordée:", this.permission);
       return this.permission;
     } catch (error) {
-      console.error("❌ Erreur permission:", error);
+      console.error("Erreur permission:", error);
       return "denied";
     }
   }
-  // Test simple de notification
   showTestNotification() {
-    console.log("🧪 Test de notification...");
     this.showMessageNotification(
       {
         id: "test-" + Date.now(),
@@ -257,10 +209,9 @@ class NotificationService {
         },
       },
       { forceShow: true }
-    ); // Force l'affichage même si la page est visible
+    );
   }
 
-  // Getters
   get currentPermission() {
     return this.permission;
   }
@@ -274,5 +225,4 @@ class NotificationService {
   }
 }
 
-// Export singleton
 export const notificationService = new NotificationService();

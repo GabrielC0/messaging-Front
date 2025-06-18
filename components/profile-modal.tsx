@@ -18,12 +18,7 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.username || "");
 
-  // TODO: À implémenter plus tard - Cette mutation sera activée quand le backend GraphQL
-  // supportera la mise à jour du profil utilisateur
-  // const [updateUser, { loading: updateLoading }] = useMutation(UPDATE_USER);
-
   useEffect(() => {
-    // Mettre à jour le nom si l'utilisateur change
     if (user?.username) {
       setName(user.username);
     }

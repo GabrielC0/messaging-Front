@@ -5,24 +5,16 @@ export const useNotifications = () => {
   const [permission, setPermission] =
     useState<NotificationPermission>("default");
   const [settings, setSettings] = useState(notificationService.currentSettings);
-
   useEffect(() => {
-    // Vérifier la permission initiale
     if (typeof window !== "undefined" && "Notification" in window) {
       setPermission(Notification.permission);
-      console.log("🔔 Permission initiale:", Notification.permission);
     }
   }, []);
 
   const requestPermission = useCallback(async () => {
-    console.log("📱 Demande de permission notifications...");
     const newPermission = await notificationService.requestPermission();
     setPermission(newPermission);
-
     if (newPermission === "granted") {
-      console.log("✅ Notifications autorisées !");
-
-      // Notification de bienvenue
       setTimeout(() => {
         try {
           new Notification("🎉 Notifications activées !", {
@@ -34,16 +26,12 @@ export const useNotifications = () => {
           console.warn("Erreur notification de bienvenue:", error);
         }
       }, 500);
-    } else {
-      console.warn("❌ Permission notifications refusée");
     }
 
     return newPermission;
   }, []);
-
   const updateSettings = useCallback(
     (newSettings: any) => {
-      console.log("⚙️ Mise à jour paramètres:", newSettings);
       notificationService.saveSettings(newSettings);
       setSettings({ ...settings, ...newSettings });
     },
@@ -51,14 +39,12 @@ export const useNotifications = () => {
   );
   const showMessageNotification = useCallback(
     (message: any, options: any = {}) => {
-      console.log("📨 Tentative d'affichage notification pour:", message);
       notificationService.showMessageNotification(message, options);
     },
     []
   );
 
   const showTestNotification = useCallback(() => {
-    console.log("🧪 Test notification...");
     notificationService.showTestNotification();
   }, []);
 

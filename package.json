@@ -1,20 +1,12 @@
 {
-  "name": "whatsapp-clone",
+  "name": "lamg-messages",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:cloud": "copy .env.production .env.local && next dev",
-    "dev:staging": "copy .env.development .env.local && next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test:connectivity": "node test-connectivity.js",
-    "test:api": "node test-api-connectivity.js",
-    "test:websocket": "echo Ouvrez http://localhost:3000/websocket-test.html dans votre navigateur pour tester WebSocket",
-    "validate:config": "node validate-config.js",
-    "validate:docs": "node validate-documentation.js",
-    "features": "node show-features.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",

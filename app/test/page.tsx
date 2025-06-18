@@ -1,198 +1,218 @@
 "use client";
 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
 import {
-  checkBackendAvailability,
-  isBackendAvailable,
-  resetApolloCache,
-} from "@/lib/apollo-client";
-import { useAuth } from "@/contexts/auth-provider";
-import { ApiTestPanel } from "@/components/api-test-panel";
-import { WebSocketTestPanel } from "@/components/websocket-test-panel";
-import { SystemInfoPanel } from "@/components/system-info-panel";
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Wifi,
+  Database,
+  MessageSquare,
+} from "lucide-react";
+import { useSocket } from "@/hooks/use-socket";
+import { useNotifications } from "@/hooks/use-notifications";
 
 export default function TestPage() {
-  const [testResult, setTestResult] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorCount, setErrorCount] = useState(0);
+  const [testResults, setTestResults] = useState<{
+    [key: string]: "success" | "error" | "warning" | null;
+  }>({});
+  const { isConnected } = useSocket();
+  const { requestPermission, permission, showTestNotification } =
+    useNotifications();
 
-  const testConnection = async () => {
-    setIsLoading(true);
-    setTestResult(null);
-
-    try {
-      const isAvailable = await checkBackendAvailability();
-
-      if (isAvailable) {
-        setTestResult("Backend disponible! ✅");
-        setErrorCount(0);
-      } else {
-        setTestResult("Backend indisponible! ❌");
-        setErrorCount((prev) => prev + 1);
+  const runTest = (
+    testName: string,
+    testFn: () => boolean | Promise<boolean>
+  ) => {
+    const executeTest = async () => {
+      try {
+        const result = await testFn();
+        setTestResults((prev) => ({
+          ...prev,
+          [testName]: result ? "success" : "error",
+        }));
+      } catch (error) {
+        setTestResults((prev) => ({ ...prev, [testName]: "error" }));
+        console.error(`Test ${testName} failed:`, error);
       }
+    };
+    executeTest();
+  };
+
+  const testWebSocket = () => {
+    return isConnected;
+  };
+  const testNotifications = async () => {
+    if (permission === "default") {
+      await requestPermission();
+    }
+    if (permission === "granted") {
+      showTestNotification();
+      return true;
+    }
+    return false;
+  };
+  const testAPI = async () => {
+    try {
+      const response = await fetch("/api/health");
+      if (response.ok) {
+        const data = await response.json();
+        return data.frontend === "healthy";
+      }
+      return false;
     } catch (error) {
-      setTestResult(`Erreur: ${(error as Error).message}`);
-      setErrorCount((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
+      console.error("API test failed:", error);
+      return false;
     }
   };
 
-  const simulateConnectionError = () => {
-    window.dispatchEvent(
-      new CustomEvent("apollo-network-error", {
-        detail: {
-          message: "Simulated network error",
-          consecutive: errorCount + 1,
-        },
-      })
-    );
-
-    setErrorCount((prev) => prev + 1);
-    setTestResult("Erreur réseau simulée");
+  const getStatusIcon = (status: "success" | "error" | "warning" | null) => {
+    switch (status) {
+      case "success":
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case "error":
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      case "warning":
+        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+      default:
+        return <div className="h-5 w-5 rounded-full bg-gray-300" />;
+    }
   };
 
-  const handleResetCache = () => {
-    resetApolloCache();
-    setTestResult("Cache Apollo réinitialisé");
+  const getStatusBadge = (status: "success" | "error" | "warning" | null) => {
+    switch (status) {
+      case "success":
+        return (
+          <Badge variant="default" className="bg-green-500">
+            OK
+          </Badge>
+        );
+      case "error":
+        return <Badge variant="destructive">ERREUR</Badge>;
+      case "warning":
+        return (
+          <Badge variant="secondary" className="bg-yellow-500">
+            ATTENTION
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">NON TESTÉ</Badge>;
+    }
   };
+
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Test de connexion au backend</h1>
-      {/* Section d'informations de configuration */}
-      <Card className="mb-8">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Page de Test</h1>
+        <p className="text-gray-600">Tests de fonctionnalité du système</p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">WebSocket</CardTitle>
+            <Wifi className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {" "}
+            <div className="flex items-center space-x-2 mb-4">
+              {getStatusIcon(testResults.websocket)}
+              <span className="text-sm">
+                Status: {isConnected ? "Connecté" : "Déconnecté"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              {getStatusBadge(testResults.websocket)}
+              <Button
+                size="sm"
+                onClick={() => runTest("websocket", testWebSocket)}
+              >
+                Tester
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Notifications</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-2 mb-4">
+              {getStatusIcon(testResults.notifications)}
+              <span className="text-sm">Permission: {permission}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              {getStatusBadge(testResults.notifications)}
+              <Button
+                size="sm"
+                onClick={() => runTest("notifications", testNotifications)}
+              >
+                Tester
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">API Backend</CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {" "}
+            <div className="flex items-center space-x-2 mb-4">
+              {getStatusIcon(testResults.api)}
+              <span className="text-sm">Route: /api/health</span>
+            </div>
+            <div className="flex justify-between items-center">
+              {getStatusBadge(testResults.api)}
+              <Button size="sm" onClick={() => runTest("api", testAPI)}>
+                Tester
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
         <CardHeader>
-          <CardTitle>Informations de Configuration</CardTitle>
-          <CardDescription>
-            URLs et paramètres de connexion actuels
-          </CardDescription>
+          <CardTitle>Test Complet</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong>GraphQL URL:</strong>
-              <div className="text-muted-foreground break-all mt-1">
-                {process.env.NEXT_PUBLIC_GRAPHQL_URL ||
-                  "https://messaging-platform-gfnp.onrender.com/graphql"}
-              </div>
-            </div>
-            <div>
-              <strong>WebSocket URL:</strong>
-              <div className="text-muted-foreground break-all mt-1">
-                {process.env.NEXT_PUBLIC_WEBSOCKET_URL ||
-                  "https://messaging-platform-gfnp.onrender.com"}
-              </div>
-            </div>
-            <div>
-              <strong>Backend URL:</strong>
-              <div className="text-muted-foreground break-all mt-1">
-                {process.env.NEXT_PUBLIC_BACKEND_URL ||
-                  "https://messaging-platform-gfnp.onrender.com"}
-              </div>
-            </div>
-            <div>
-              <strong>Environnement:</strong>
-              <div className="text-muted-foreground mt-1">
-                <Badge variant="outline">
-                  {process.env.NODE_ENV || "development"}
-                </Badge>
-              </div>
-            </div>
+        <CardContent className="space-y-4">
+          <Button
+            className="w-full"
+            onClick={() => {
+              runTest("websocket", testWebSocket);
+              runTest("notifications", testNotifications);
+              runTest("api", testAPI);
+            }}
+          >
+            Lancer tous les tests
+          </Button>
+          <div className="text-sm text-gray-600">
+            <p>
+              <strong>WebSocket:</strong> Teste la connexion temps réel
+            </p>
+            <p>
+              <strong>Notifications:</strong> Teste les notifications push des
+              messages
+            </p>
+            <p>
+              <strong>API:</strong> Teste la connectivité backend
+            </p>
+            <p className="mt-2 text-xs text-blue-600">
+              💡 Pour tester les notifications des messages, assurez-vous
+              d'abord d'autoriser les notifications, puis ouvrez deux onglets et
+              envoyez un message depuis l'autre onglet.
+            </p>
           </div>
         </CardContent>
       </Card>
-      {/* Nouveau panneau de test API */}
-      <div className="mb-8">
-        <ApiTestPanel />
-      </div>{" "}
-      {/* Nouveau panneau de test WebSocket */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Tests WebSocket Avancés</h2>
-        <WebSocketTestPanel />
-      </div>
-      {/* Panel d'informations système */}
-      <div className="mb-8">
-        <SystemInfoPanel />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>État de la connexion</CardTitle>
-            <CardDescription>
-              Vérifiez l'état de la connexion au backend GraphQL
-            </CardDescription>
-          </CardHeader>{" "}
-          <CardContent>
-            <div className="mb-4">
-              <p className="mb-2">Statut actuel:</p>
-              <Badge
-                variant={isBackendAvailable ? "default" : "destructive"}
-                className="text-lg py-2 px-3"
-              >
-                {isBackendAvailable ? "Connecté" : "Déconnecté"}
-              </Badge>
-            </div>
-
-            {testResult && (
-              <div className="bg-gray-100 p-4 rounded-md mt-4">
-                <p>{testResult}</p>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex gap-2">
-            <Button onClick={testConnection} disabled={isLoading}>
-              {isLoading ? "Test en cours..." : "Tester la connexion"}
-            </Button>
-            <Button variant="outline" onClick={handleResetCache}>
-              Réinitialiser le cache
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Outils de test</CardTitle>
-            <CardDescription>
-              Simulez différents scénarios de connexion
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">
-              Ces outils vous permettent de tester comment l'application se
-              comporte dans différents scénarios de connexion.
-            </p>
-            <p className="text-sm text-gray-500">
-              Nombre d'erreurs simulées: {errorCount}
-            </p>
-          </CardContent>
-          <CardFooter className="flex flex-col items-stretch gap-2">
-            <Button onClick={simulateConnectionError} variant="destructive">
-              Simuler une erreur réseau
-            </Button>
-            <Button
-              onClick={() => {
-                window.dispatchEvent(new CustomEvent("backend-reconnected"));
-                setTestResult("Événement de reconnexion déclenché");
-                setErrorCount(0);
-              }}
-              variant="outline"
-              className="border-green-500 text-green-600"
-            >
-              Simuler une reconnexion
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
     </div>
   );
 }

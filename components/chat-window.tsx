@@ -25,6 +25,8 @@ import {
   useMessaging,
   useConversation,
 } from "../hooks/use-api";
+import { useSocket } from "../hooks/use-socket";
+import { useNotifications } from "../hooks/use-notifications";
 import { Message, User } from "../graphql/types";
 
 interface ChatWindowProps {
@@ -33,8 +35,6 @@ interface ChatWindowProps {
   showBackButton?: boolean;
 }
 
-// TODO: À implémenter plus tard - Mise à jour du statut de lecture des messages
-// Cette fonctionnalité sera implémentée quand le backend supportera la mise à jour du statut
 function formatMessageTime(timestamp: string) {
   const date = new Date(timestamp);
   return format(date, "HH:mm", { locale: fr });
@@ -57,28 +57,35 @@ export function ChatWindow({
 
   const { data: conversationData } = useConversation(conversationId);
   const { sendMessage } = useMessaging();
+  const { lastMessage } = useSocket();
+  const { showMessageNotification } = useNotifications();
 
   const messages = messagesData?.conversationMessages || [];
   const conversation = conversationData?.conversation;
-
-  // TODO: À implémenter plus tard - Mise à jour du statut de lecture des messages
-  // Cette fonctionnalité sera implémentée quand le backend supportera la mise à jour du statut
-  // useEffect(() => {
-  //   if (messages?.length && user) {
-  //     const unreadMessages = messages
-  //       .filter(msg => !msg.isRead && msg.sender.id !== user.id)
-  //       .map(msg => msg.id);
-  //     if (unreadMessages.length > 0) {
-  //       updateMessageReadStatus(unreadMessages, conversationId);
-  //     }
-  //   }
-  // }, [messages, conversationId, user]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (lastMessage && lastMessage.conversationId === conversationId) {
+      if (lastMessage.sender.id !== user?.id) {
+        showMessageNotification(lastMessage, {
+          conversationName: conversation?.title || "Nouveau message",
+        });
+      }
+      refetchMessages();
+    }
+  }, [
+    lastMessage,
+    conversationId,
+    user?.id,
+    conversation?.title,
+    showMessageNotification,
+    refetchMessages,
+  ]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user) return;
@@ -140,7 +147,6 @@ export function ChatWindow({
             <h2 className="font-medium text-sm text-gray-900">
               {otherParticipant?.username || "Conversation"}
             </h2>
-            {/* TODO: À implémenter plus tard - Statut en ligne */}
           </div>
         </div>
       </div>

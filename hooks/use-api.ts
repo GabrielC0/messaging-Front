@@ -34,7 +34,6 @@ import {
   Message,
 } from "../graphql/types";
 
-// Hook pour récupérer tous les utilisateurs
 export const useUsers = () => {
   return useQuery<GetUsersResponse>(GET_USERS, {
     errorPolicy: "all",
@@ -42,7 +41,6 @@ export const useUsers = () => {
   });
 };
 
-// Hook pour récupérer un utilisateur par ID
 export const useUser = (id: string) => {
   return useQuery<GetUserResponse>(GET_USER, {
     variables: { id },
@@ -51,7 +49,6 @@ export const useUser = (id: string) => {
   });
 };
 
-// Hook pour récupérer toutes les conversations
 export const useConversations = () => {
   return useQuery<GetConversationsResponse>(GET_CONVERSATIONS, {
     errorPolicy: "all",
@@ -59,7 +56,6 @@ export const useConversations = () => {
   });
 };
 
-// Hook pour récupérer une conversation par ID
 export const useConversation = (id: string) => {
   return useQuery<GetConversationResponse>(GET_CONVERSATION, {
     variables: { id },
@@ -68,13 +64,12 @@ export const useConversation = (id: string) => {
   });
 };
 
-// Hook pour récupérer les conversations d'un utilisateur
 export const useUserConversations = (userId: string) => {
   return useQuery<GetUserConversationsResponse>(GET_USER_CONVERSATIONS, {
     variables: { userId },
     skip: !userId,
     errorPolicy: "all",
-    fetchPolicy: "cache-and-network", // Essaie de récupérer des données fraîches
+    fetchPolicy: "cache-and-network",
     onCompleted: (data) => {
       console.log("UserConversations data received:", data);
       if (data?.userConversations) {
@@ -101,7 +96,6 @@ export const useUserConversations = (userId: string) => {
   });
 };
 
-// Hook pour récupérer tous les messages
 export const useMessages = () => {
   return useQuery<GetMessagesResponse>(GET_MESSAGES, {
     errorPolicy: "all",
@@ -109,7 +103,6 @@ export const useMessages = () => {
   });
 };
 
-// Hook pour récupérer un message par ID
 export const useMessage = (id: string) => {
   return useQuery<GetMessageResponse>(GET_MESSAGE, {
     variables: { id },
@@ -118,33 +111,29 @@ export const useMessage = (id: string) => {
   });
 };
 
-// Hook pour récupérer les messages d'une conversation
 export const useConversationMessages = (conversationId: string) => {
   return useQuery<GetConversationMessagesResponse>(GET_CONVERSATION_MESSAGES, {
     variables: { conversationId },
     skip: !conversationId,
     errorPolicy: "all",
-    pollInterval: 5000, // Refresh toutes les 5 secondes
+    pollInterval: 5000,
   });
 };
 
-// Hook pour le health check
 export const useHealthCheck = () => {
   return useQuery<HealthCheckResponse>(HEALTH_CHECK, {
     errorPolicy: "all",
-    pollInterval: 30000, // Check toutes les 30 secondes
+    pollInterval: 30000,
     notifyOnNetworkStatusChange: true,
-    fetchPolicy: "cache-and-network", // Toujours essayer de refetch
+    fetchPolicy: "cache-and-network",
   });
 };
 
-// Hook pour créer un utilisateur
 export const useCreateUser = () => {
   const client = useApolloClient();
 
   return useMutation(CREATE_USER, {
     onCompleted: () => {
-      // Refresh la liste des utilisateurs
       client.refetchQueries({
         include: [GET_USERS],
       });
@@ -153,13 +142,11 @@ export const useCreateUser = () => {
   });
 };
 
-// Hook pour créer une conversation
 export const useCreateConversation = () => {
   const client = useApolloClient();
 
   return useMutation(CREATE_CONVERSATION, {
     onCompleted: () => {
-      // Refresh la liste des conversations
       client.refetchQueries({
         include: [GET_CONVERSATIONS],
       });
@@ -168,12 +155,10 @@ export const useCreateConversation = () => {
   });
 };
 
-// Hook pour créer un message
 export const useCreateMessage = () => {
   const client = useApolloClient();
   return useMutation(CREATE_MESSAGE, {
     onCompleted: (data) => {
-      // Refresh les messages de la conversation
       if (data?.createMessage?.conversation?.id) {
         client.refetchQueries({
           include: [GET_CONVERSATION_MESSAGES],
@@ -184,16 +169,13 @@ export const useCreateMessage = () => {
   });
 };
 
-// Hook combiné pour toutes les opérations de messagerie avec WebSocket
 export const useMessaging = () => {
   const { isConnected, lastMessage } = useSocket();
   const client = useApolloClient();
   const [createMessage] = useCreateMessage();
 
-  // Écouter les nouveaux messages via WebSocket et mettre à jour le cache
   const handleNewMessage = (message: Message) => {
     if (message.conversation?.id) {
-      // Mettre à jour le cache Apollo avec le nouveau message
       try {
         const existingMessages = client.readQuery({
           query: GET_CONVERSATION_MESSAGES,
@@ -218,7 +200,6 @@ export const useMessaging = () => {
     }
   };
 
-  // Fonction pour envoyer un message
   const sendMessage = async (input: CreateMessageInput, senderId: string) => {
     try {
       const result = await createMessage({
@@ -243,7 +224,6 @@ export const useMessaging = () => {
   };
 };
 
-// Hook pour les opérations utilisateur
 export const useUserOperations = () => {
   const [createUser] = useCreateUser();
 
@@ -265,7 +245,6 @@ export const useUserOperations = () => {
   };
 };
 
-// Hook pour les opérations de conversation
 export const useConversationOperations = () => {
   const [createConversation] = useCreateConversation();
 

@@ -165,7 +165,7 @@ export default function AuthPage() {
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <Card>
           <CardHeader>
-            <CardTitle>WhatsApp Clone</CardTitle>
+            <CardTitle>LAMG-Messages</CardTitle>
             <CardDescription>
               Commencez à discuter avec vos amis et collègues
             </CardDescription>

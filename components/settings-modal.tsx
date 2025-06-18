@@ -14,11 +14,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [notifications, setNotifications] = useState(true);
   const [sounds, setSounds] = useState(true);
 
-  // TODO: À implémenter plus tard - Ces états seront activés quand le backend GraphQL
-  // supportera la gestion du statut en ligne et des accusés de lecture
-  // const [readReceipts, setReadReceipts] = useState(true);
-  // const [lastSeen, setLastSeen] = useState(true);
-
   if (!isOpen) return null;
 
   return (
