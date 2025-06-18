@@ -116,7 +116,7 @@ export const useConversationMessages = (conversationId: string) => {
     variables: { conversationId },
     skip: !conversationId,
     errorPolicy: "all",
-    pollInterval: 5000,
+    pollInterval: 100,
   });
 };
 

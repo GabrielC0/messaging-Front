@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { GlobalNotificationListener } from "@/components/global-notification-listener";
 import { NotificationInitializer } from "@/components/notification-initializer";
 import { AudioPreloader } from "@/components/audio-preloader";
+// import { NotificationDebug } from "@/components/notification-debug";
 
 export const metadata: Metadata = {
   title: "LAMG-Messages",
@@ -25,6 +26,7 @@ export default function RootLayout({
             <AudioPreloader />
             <NotificationInitializer />
             <GlobalNotificationListener />
+            {/* <NotificationDebug /> */}
             {children}
             <Toaster />
           </AuthProvider>

@@ -102,13 +102,16 @@ export function ChatWindow({
 
   useEffect(() => {
     if (lastMessage && lastMessage.conversationId === conversationId) {
-      // Actualiser les messages quand un nouveau message arrive dans cette conversation
-      refetchMessages();
+      // Actualiser les messages uniquement si ce n'est pas notre propre message
+      // pour éviter le double refresh
+      if (lastMessage.sender.id !== user?.id) {
+        refetchMessages();
+      }
 
       // Note: Les notifications sont maintenant gérées globalement par GlobalNotificationListener
       // Nous n'avons plus besoin de les déclencher ici pour éviter les doublons
     }
-  }, [lastMessage, conversationId, refetchMessages]);
+  }, [lastMessage, conversationId, refetchMessages, user?.id]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user) return;
@@ -123,7 +126,8 @@ export function ChatWindow({
       );
 
       setNewMessage("");
-      await refetchMessages();
+      // Pas besoin de refetchMessages ici car le WebSocket va nous envoyer
+      // le nouveau message et il sera ajouté automatiquement
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -178,11 +182,7 @@ export function ChatWindow({
         className="flex-1 overflow-y-auto p-4 space-y-4"
         ref={messagesEndRef}
       >
-        {loadingMessages ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-          </div>
-        ) : messages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <MessageSquare className="h-12 w-12 mb-2" />
             <p>Aucun message dans cette conversation</p>
