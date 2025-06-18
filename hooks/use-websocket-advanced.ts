@@ -59,6 +59,12 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
 
     const socket = socketRef.current;
 
+    // Exposer le socket globalement pour le débogage
+    if (typeof window !== "undefined") {
+      (window as any).socket = socket;
+      console.log("🔍 Socket exposé globalement: window.socket");
+    }
+
     // Événement : Connexion réussie
     socket.on("connect", () => {
       console.log("✅ WebSocket connecté:", socket.id);

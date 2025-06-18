@@ -19,6 +19,7 @@ import {
 import { useAuth } from "@/contexts/auth-provider";
 import { ApiTestPanel } from "@/components/api-test-panel";
 import { WebSocketTestPanel } from "@/components/websocket-test-panel";
+import { SystemInfoPanel } from "@/components/system-info-panel";
 
 export default function TestPage() {
   const [testResult, setTestResult] = useState<string | null>(null);
@@ -68,18 +69,61 @@ export default function TestPage() {
   return (
     <div className="container py-10">
       <h1 className="text-3xl font-bold mb-6">Test de connexion au backend</h1>
-
+      {/* Section d'informations de configuration */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Informations de Configuration</CardTitle>
+          <CardDescription>
+            URLs et paramètres de connexion actuels
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <strong>GraphQL URL:</strong>
+              <div className="text-muted-foreground break-all mt-1">
+                {process.env.NEXT_PUBLIC_GRAPHQL_URL ||
+                  "https://messaging-platform-gfnp.onrender.com/graphql"}
+              </div>
+            </div>
+            <div>
+              <strong>WebSocket URL:</strong>
+              <div className="text-muted-foreground break-all mt-1">
+                {process.env.NEXT_PUBLIC_WEBSOCKET_URL ||
+                  "https://messaging-platform-gfnp.onrender.com"}
+              </div>
+            </div>
+            <div>
+              <strong>Backend URL:</strong>
+              <div className="text-muted-foreground break-all mt-1">
+                {process.env.NEXT_PUBLIC_BACKEND_URL ||
+                  "https://messaging-platform-gfnp.onrender.com"}
+              </div>
+            </div>
+            <div>
+              <strong>Environnement:</strong>
+              <div className="text-muted-foreground mt-1">
+                <Badge variant="outline">
+                  {process.env.NODE_ENV || "development"}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       {/* Nouveau panneau de test API */}
       <div className="mb-8">
         <ApiTestPanel />
-      </div>
-
+      </div>{" "}
       {/* Nouveau panneau de test WebSocket */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4">Tests WebSocket Avancés</h2>
         <WebSocketTestPanel />
       </div>
-
+      {/* Panel d'informations système */}
+      <div className="mb-8">
+        <SystemInfoPanel />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>

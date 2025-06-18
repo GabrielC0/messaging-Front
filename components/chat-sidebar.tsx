@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Search,
   MessageCircle,
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-provider";
 import { useUserConversations } from "../hooks/use-api";
+import { useWebSocketAdvanced } from "../hooks/use-websocket-advanced";
 import { User, Conversation } from "../graphql/types";
 import { format, isToday, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -36,12 +37,19 @@ export function ChatSidebar({
   onNewConversation,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [lastMessageUpdate, setLastMessageUpdate] = useState(0); // Pour forcer le re-tri
   const { user, logout } = useAuth();
   const {
     data: conversationsData,
     loading: loadingConversations,
     error,
+    refetch: refetchConversations,
   } = useUserConversations(user?.id || "");
+
+  // Écouter les nouveaux messages WebSocket
+  const { lastMessage } = useWebSocketAdvanced({
+    autoConnect: true,
+  });
 
   const conversations = conversationsData?.userConversations || [];
 
@@ -54,18 +62,42 @@ export function ChatSidebar({
     console.log("Sidebar - Conversations array:", conversations);
   }, [conversationsData, user?.id, loadingConversations, error, conversations]);
 
-  const filteredConversations = conversations.filter((conv: Conversation) => {
-    const otherParticipant = conv.participants.find(
-      (p: User) => p.id !== user?.id
-    );
-    return (
-      otherParticipant?.username
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (conv.title &&
-        conv.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  });
+  const filteredConversations = useMemo(() => {
+    return conversations
+      .filter((conv: Conversation) => {
+        const otherParticipant = conv.participants.find(
+          (p: User) => p.id !== user?.id
+        );
+        return (
+          otherParticipant?.username
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          (conv.title &&
+            conv.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+      })
+      .sort((a: Conversation, b: Conversation) => {
+        // Trier par date du dernier message (plus récent en premier)
+        // lastMessageUpdate est utilisé pour forcer le re-calcul
+        const lastMessageA =
+          a.messages && a.messages.length > 0
+            ? a.messages[a.messages.length - 1]
+            : null;
+        const lastMessageB =
+          b.messages && b.messages.length > 0
+            ? b.messages[b.messages.length - 1]
+            : null;
+
+        // Si une conversation n'a pas de messages, elle va en bas
+        if (!lastMessageA && !lastMessageB) return 0;
+        if (!lastMessageA) return 1;
+        if (!lastMessageB) return -1;
+
+        const dateA = new Date(lastMessageA.createdAt);
+        const dateB = new Date(lastMessageB.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
+  }, [conversations, searchQuery, user?.id, lastMessageUpdate]);
 
   const formatTime = (timeString: string) => {
     const date = new Date(timeString);
@@ -79,15 +111,21 @@ export function ChatSidebar({
     }
   };
 
-  const formatDetailedDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // Écouter les nouveaux messages et forcer la mise à jour
+  useEffect(() => {
+    if (lastMessage) {
+      console.log("Sidebar - Nouveau message reçu:", lastMessage);
+      // Forcer la mise à jour du tri en mettant à jour le timestamp
+      setLastMessageUpdate(Date.now());
+
+      // Optionnel: Recharger les conversations pour avoir les données à jour
+      if (refetchConversations) {
+        setTimeout(() => {
+          refetchConversations();
+        }, 500); // Petit délai pour laisser le backend se mettre à jour
+      }
+    }
+  }, [lastMessage, refetchConversations]);
 
   return (
     <div className="w-full md:w-80 lg:w-96 max-w-sm bg-white flex flex-col h-full shrink-0">
@@ -207,23 +245,8 @@ export function ChatSidebar({
                             const prefix = isFromCurrentUser ? "Vous: " : "";
                             return `${prefix}${lastMessage.content}`;
                           })()
-                        : "Aucun message"}
+                        : ""}
                     </p>
-                    <div className="flex gap-2 text-[10px] text-gray-400">
-                      <span>
-                        Créée le {formatDetailedDate(conversation.createdAt)}
-                      </span>
-                      {conversation.messages &&
-                        conversation.messages.length > 0 && (
-                          <>
-                            <span>•</span>
-                            <span>
-                              Dernière activité le{" "}
-                              {formatDetailedDate(conversation.lastActivity)}
-                            </span>
-                          </>
-                        )}
-                    </div>
                   </div>
                 </div>
               </div>
