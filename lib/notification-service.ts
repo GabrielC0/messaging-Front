@@ -131,7 +131,6 @@ class NotificationService {
       console.error("Erreur affichage notification:", error);
     }
   }
-
   canShowNotification(forceShow = false): boolean {
     const checks = {
       isSupported: this.isSupported,
@@ -145,14 +144,22 @@ class NotificationService {
           : true,
     };
 
-    return (
+    const result =
       checks.isSupported &&
       checks.hasPermission &&
       checks.isEnabled &&
       checks.isDesktopEnabled &&
       checks.isNotQuietTime &&
-      (forceShow || checks.isPageHidden)
-    );
+      (forceShow || checks.isPageHidden);
+
+    console.log("🔍 Vérification notification:", {
+      checks,
+      forceShow,
+      result,
+      timestamp: new Date().toISOString(),
+    });
+
+    return result;
   }
 
   handleNotificationClick(message: any) {
@@ -166,16 +173,28 @@ class NotificationService {
       );
     }
   }
-
   playNotificationSound() {
     if (typeof window === "undefined") return;
 
     try {
       const audio = new Audio("/notification-sound.mp3");
-      audio.volume = 0.3;
-      audio.play().catch(() => {
-        console.warn("Cannot play notification sound");
+      audio.volume = 0.5; // Augmenté le volume
+      audio.preload = "auto";
+
+      // Essayer de jouer le son
+      audio.play().catch((error) => {
+        console.warn("Cannot play notification sound:", error);
+
+        // Si le son ne peut pas être joué automatiquement (politique de navigateur),
+        // essayer avec une interaction utilisateur
+        if (error.name === "NotAllowedError") {
+          console.log(
+            "🔊 Son bloqué par la politique du navigateur. L'utilisateur doit interagir d'abord."
+          );
+        }
       });
+
+      console.log("🔊 Tentative de lecture du son de notification");
     } catch (error) {
       console.warn("Notification sound error:", error);
     }
@@ -210,6 +229,27 @@ class NotificationService {
       },
       { forceShow: true }
     );
+  }
+  testNotificationSound() {
+    console.log("🔊 Test du son de notification");
+    this.playNotificationSound();
+  }
+
+  getPermissionStatus() {
+    return {
+      permission: this.permission,
+      isSupported: this.isSupported,
+      isEnabled: this.settings.enabled,
+      canShow: this.canShowNotification(true),
+      browserInfo:
+        typeof window !== "undefined"
+          ? {
+              hasNotificationAPI: "Notification" in window,
+              userAgent: navigator.userAgent,
+              isSecureContext: window.isSecureContext,
+            }
+          : null,
+    };
   }
 
   get currentPermission() {

@@ -58,10 +58,41 @@ export function ChatWindow({
   const { data: conversationData } = useConversation(conversationId);
   const { sendMessage } = useMessaging();
   const { lastMessage } = useSocket();
-  const { showMessageNotification } = useNotifications();
 
   const messages = messagesData?.conversationMessages || [];
   const conversation = conversationData?.conversation;
+
+  // Informer le système global de la conversation actuellement visualisée
+  useEffect(() => {
+    if (typeof window !== "undefined" && conversationId) {
+      // Émettre un événement pour informer du changement de conversation active
+      window.dispatchEvent(
+        new CustomEvent("activeConversationChanged", {
+          detail: { conversationId },
+        })
+      );
+
+      // Également utiliser la fonction globale si elle existe
+      if ((window as any).setActiveConversation) {
+        (window as any).setActiveConversation(conversationId);
+      }
+    }
+
+    // Nettoyer quand le composant se démonte
+    return () => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("activeConversationChanged", {
+            detail: { conversationId: null },
+          })
+        );
+
+        if ((window as any).setActiveConversation) {
+          (window as any).setActiveConversation(null);
+        }
+      }
+    };
+  }, [conversationId]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -71,21 +102,13 @@ export function ChatWindow({
 
   useEffect(() => {
     if (lastMessage && lastMessage.conversationId === conversationId) {
-      if (lastMessage.sender.id !== user?.id) {
-        showMessageNotification(lastMessage, {
-          conversationName: conversation?.title || "Nouveau message",
-        });
-      }
+      // Actualiser les messages quand un nouveau message arrive dans cette conversation
       refetchMessages();
+
+      // Note: Les notifications sont maintenant gérées globalement par GlobalNotificationListener
+      // Nous n'avons plus besoin de les déclencher ici pour éviter les doublons
     }
-  }, [
-    lastMessage,
-    conversationId,
-    user?.id,
-    conversation?.title,
-    showMessageNotification,
-    refetchMessages,
-  ]);
+  }, [lastMessage, conversationId, refetchMessages]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user) return;

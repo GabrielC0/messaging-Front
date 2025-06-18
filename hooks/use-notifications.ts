@@ -5,9 +5,12 @@ export const useNotifications = () => {
   const [permission, setPermission] =
     useState<NotificationPermission>("default");
   const [settings, setSettings] = useState(notificationService.currentSettings);
+  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       setPermission(Notification.permission);
+      setIsReady(true);
     }
   }, []);
 
@@ -43,18 +46,26 @@ export const useNotifications = () => {
     },
     []
   );
-
   const showTestNotification = useCallback(() => {
     notificationService.showTestNotification();
   }, []);
+  const testNotificationSound = useCallback(() => {
+    notificationService.testNotificationSound();
+  }, []);
 
+  const getPermissionStatus = useCallback(() => {
+    return notificationService.getPermissionStatus();
+  }, []);
   return {
     permission,
     settings,
+    isReady,
     requestPermission,
     updateSettings,
     showMessageNotification,
     showTestNotification,
+    testNotificationSound,
+    getPermissionStatus,
     isSupported: notificationService.isNotificationSupported,
   };
 };

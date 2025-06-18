@@ -195,8 +195,3 @@ export const useWebSocketAdvanced = (options: UseWebSocketOptions = {}) => {
     isReconnecting: state.reconnectAttempts > 0,
   };
 };
-
-export const useSocket = () => {
-  const { isConnected, lastMessage } = useWebSocketAdvanced();
-  return { isConnected, lastMessage };
-};

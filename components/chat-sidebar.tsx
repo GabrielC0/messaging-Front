@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-provider";
 import { useUserConversations } from "../hooks/use-api";
-import { useWebSocketAdvanced } from "../hooks/use-websocket-advanced";
+import { useSocket } from "../hooks/use-socket";
 import { User, Conversation } from "../graphql/types";
 import { format, isToday, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -47,20 +47,9 @@ export function ChatSidebar({
   } = useUserConversations(user?.id || "");
 
   // Écouter les nouveaux messages WebSocket
-  const { lastMessage } = useWebSocketAdvanced({
-    autoConnect: true,
-  });
+  const { lastMessage } = useSocket();
 
   const conversations = conversationsData?.userConversations || [];
-
-  // Debug: Afficher les données reçues
-  useEffect(() => {
-    console.log("Sidebar - Conversations data:", conversationsData);
-    console.log("Sidebar - User ID:", user?.id);
-    console.log("Sidebar - Loading:", loadingConversations);
-    console.log("Sidebar - Error:", error);
-    console.log("Sidebar - Conversations array:", conversations);
-  }, [conversationsData, user?.id, loadingConversations, error, conversations]);
 
   const filteredConversations = useMemo(() => {
     return conversations
@@ -115,14 +104,12 @@ export function ChatSidebar({
   useEffect(() => {
     if (lastMessage) {
       console.log("Sidebar - Nouveau message reçu:", lastMessage);
-      // Forcer la mise à jour du tri en mettant à jour le timestamp
       setLastMessageUpdate(Date.now());
 
-      // Optionnel: Recharger les conversations pour avoir les données à jour
       if (refetchConversations) {
         setTimeout(() => {
           refetchConversations();
-        }, 500); // Petit délai pour laisser le backend se mettre à jour
+        }, 500);
       }
     }
   }, [lastMessage, refetchConversations]);

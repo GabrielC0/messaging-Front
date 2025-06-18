@@ -3,6 +3,9 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-provider";
 import { ApolloProviderWrapper } from "@/contexts/apollo-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { GlobalNotificationListener } from "@/components/global-notification-listener";
+import { NotificationInitializer } from "@/components/notification-initializer";
+import { AudioPreloader } from "@/components/audio-preloader";
 
 export const metadata: Metadata = {
   title: "LAMG-Messages",
@@ -19,6 +22,9 @@ export default function RootLayout({
       <body>
         <ApolloProviderWrapper>
           <AuthProvider>
+            <AudioPreloader />
+            <NotificationInitializer />
+            <GlobalNotificationListener />
             {children}
             <Toaster />
           </AuthProvider>

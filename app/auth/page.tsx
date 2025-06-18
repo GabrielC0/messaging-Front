@@ -84,7 +84,6 @@ export default function AuthPage() {
         return;
       }
 
-      console.log("Attempting login with:", { email: loginEmail });
       const success = await register(loginEmail);
 
       if (success) {
@@ -131,11 +130,6 @@ export default function AuthPage() {
         });
         return;
       }
-
-      console.log("Attempting to register with:", {
-        email: registerEmail,
-        username: registerName,
-      });
 
       const success = await register(registerEmail, registerName);
 

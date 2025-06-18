@@ -27,34 +27,19 @@ export function ContactsModal({
 
   if (!isOpen) return null;
 
-  console.log("Current user:", user);
-  console.log("All users before filtering:", allUsers);
-
   const filteredUsers = allUsers.filter((contact) => {
     const isCurrentUser = contact.id === user?.id;
     const matchesSearch =
       contact.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contact.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (isCurrentUser) {
-      console.log("Excluding current user:", contact);
-    }
-    if (!matchesSearch) {
-      console.log("User doesn't match search:", contact);
-    }
-
     return !isCurrentUser && matchesSearch;
   });
-
-  console.log("Filtered users:", filteredUsers);
 
   const isInConversation = (userId: string) => {
     const result = conversations.some((conv) =>
       conv.participants.some((participant) => participant.id === userId)
     );
-    if (result) {
-      console.log("User already in conversation:", userId);
-    }
     return result;
   };
 
